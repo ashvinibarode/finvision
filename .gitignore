@@ -1,0 +1,34 @@
+target/
+.idea/
+*.iml
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+### VS Code ###
+.vscode/
+
+### Maven ###
+.mvn/wrapper/maven-wrapper.jar
+
+### Logs ###
+*.log
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Environment ###
+.env
+
+### Uploads ###
+uploads/
+
+### Build ###
+out/
