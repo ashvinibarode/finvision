@@ -14,9 +14,6 @@ target/
 ### VS Code ###
 .vscode/
 
-### Maven ###
-.mvn/wrapper/maven-wrapper.jar
-
 ### Logs ###
 *.log
 
