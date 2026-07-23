@@ -1,4 +1,5 @@
-package com.finvision.auth;
+
+package com.finvision.auth.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,4 +1,5 @@
-package com.finvision.auth;
+
+package com.finvision.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
