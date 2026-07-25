@@ -4,6 +4,7 @@ import com.finvision.auth.dto.AuthResponse;
 import com.finvision.auth.dto.LoginRequest;
 import com.finvision.auth.dto.RegisterRequest;
 import com.finvision.auth.service.AuthService;
+import com.finvision.common.exception.ResourceNotFoundException;
 import com.finvision.security.jwt.JwtService;
 import com.finvision.user.entity.Role;
 import com.finvision.user.entity.RoleType;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import com.finvision.security.service.CustomUserDetailsService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import com.finvision.common.exception.DuplicateResourceException;
 
 
 @Service
@@ -33,11 +35,11 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new DuplicateResourceException("Email already exists");
         }
 
         Role userRole = roleRepository.findByName(RoleType.ROLE_USER)
-                .orElseThrow(() -> new RuntimeException("Default role not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Default role not found"));
 
         User user = User.builder()
                 .firstName(request.getFirstName())
