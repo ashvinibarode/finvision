@@ -7,13 +7,13 @@ import java.util.List;
 
 public interface TransactionService {
 
-    TransactionResponse addTransaction(TransactionRequest request);
+    TransactionResponse addTransaction(String email, TransactionRequest request);
 
-    TransactionResponse updateTransaction(Long id, TransactionRequest request);
+    TransactionResponse updateTransaction(Long id, String email, TransactionRequest request);
 
-    void deleteTransaction(Long id);
+    void deleteTransaction(Long id, String email);
 
-    TransactionResponse getTransactionById(Long id);
+    TransactionResponse getTransactionById(Long id, String email);
 
-    List<TransactionResponse> getAllTransactions();
+    List<TransactionResponse> getAllTransactions(String email);
 }

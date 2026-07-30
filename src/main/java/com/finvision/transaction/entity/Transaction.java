@@ -1,6 +1,7 @@
 package com.finvision.transaction.entity;
 
 import com.finvision.category.entity.Category;
+import com.finvision.category.entity.CategoryType;
 import com.finvision.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,7 +33,7 @@ public class Transaction {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TransactionType type;
+    private CategoryType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

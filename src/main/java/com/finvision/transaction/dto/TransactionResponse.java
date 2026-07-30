@@ -1,6 +1,6 @@
 package com.finvision.transaction.dto;
 
-import com.finvision.transaction.entity.TransactionType;
+import com.finvision.category.entity.CategoryType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,7 +15,7 @@ public class TransactionResponse {
     private String title;
     private String description;
     private BigDecimal amount;
-    private TransactionType type;
+    private CategoryType type;
     private String category;
     private LocalDate transactionDate;
 }
