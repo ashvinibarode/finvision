@@ -11,10 +11,13 @@ import java.util.Optional;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
-    List<Transaction> findByUser(User user);
     Optional<Transaction> findByIdAndUser(Long id, User user);
 
+    List<Transaction> findByUser(User user);
+
     List<Transaction> findByUserAndType(User user, CategoryType type);
+
+    List<Transaction> findByUserAndCategoryId(User user, Long categoryId);
 
     List<Transaction> findByUserAndTransactionDateBetween(
             User user,
@@ -22,5 +25,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             LocalDate endDate
     );
 
-    List<Transaction> findByUserAndCategoryId(User user, Long categoryId);
+    List<Transaction> findByUserAndTitleContainingIgnoreCase(
+            User user,
+            String title
+    );
 }

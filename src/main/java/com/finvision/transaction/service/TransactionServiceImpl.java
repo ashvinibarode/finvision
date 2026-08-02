@@ -1,5 +1,6 @@
 package com.finvision.transaction.service.impl;
 
+import com.finvision.category.entity.CategoryType;
 import com.finvision.category.entity.Category;
 import com.finvision.category.repository.CategoryRepository;
 import com.finvision.common.exception.ResourceNotFoundException;
@@ -13,6 +14,7 @@ import com.finvision.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -43,26 +45,22 @@ public class TransactionServiceImpl implements TransactionService {
                 .user(user)
                 .build();
 
-        transactionRepository.save(transaction);
+        transaction = transactionRepository.save(transaction);
 
         return mapToResponse(transaction);
     }
 
     @Override
-    public TransactionResponse updateTransaction(Long id,
-                                                 String email,
-                                                 TransactionRequest request) {
+    public TransactionResponse updateTransaction(Long id, String email, TransactionRequest request) {
 
         User user = getUser(email);
 
         Transaction transaction = transactionRepository
                 .findByIdAndUser(id, user)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Transaction not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         validateCategory(category, request);
 
@@ -73,7 +71,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setCategory(category);
         transaction.setTransactionDate(request.getTransactionDate());
 
-        transactionRepository.save(transaction);
+        transaction = transactionRepository.save(transaction);
 
         return mapToResponse(transaction);
     }
@@ -85,8 +83,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         Transaction transaction = transactionRepository
                 .findByIdAndUser(id, user)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Transaction not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
         transactionRepository.delete(transaction);
     }
@@ -98,8 +95,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         Transaction transaction = transactionRepository
                 .findByIdAndUser(id, user)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Transaction not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
         return mapToResponse(transaction);
     }
@@ -115,7 +111,59 @@ public class TransactionServiceImpl implements TransactionService {
                 .toList();
     }
 
-    // ---------------- Helper Methods ----------------
+    @Override
+    public List<TransactionResponse> getTransactionsByType(String email,
+                                                           CategoryType type) {
+
+        User user = getUser(email);
+
+        return transactionRepository.findByUserAndType(user, type)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TransactionResponse> getTransactionsByCategory(String email,
+                                                               Long categoryId) {
+
+        User user = getUser(email);
+
+        return transactionRepository.findByUserAndCategoryId(user, categoryId)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TransactionResponse> searchTransactions(String email,
+                                                        String keyword) {
+
+        User user = getUser(email);
+
+        return transactionRepository
+                .findByUserAndTitleContainingIgnoreCase(user, keyword)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TransactionResponse> getTransactionsBetweenDates(
+            String email,
+            LocalDate startDate,
+            LocalDate endDate) {
+
+        User user = getUser(email);
+
+        return transactionRepository
+                .findByUserAndTransactionDateBetween(user, startDate, endDate)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    // ================= Helper Methods =================
 
     private User getUser(String email) {
 
