@@ -1,12 +1,12 @@
 package com.finvision.transaction.controller;
 
 import com.finvision.category.entity.CategoryType;
-
 import com.finvision.transaction.dto.TransactionRequest;
 import com.finvision.transaction.dto.TransactionResponse;
 import com.finvision.transaction.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -129,5 +129,22 @@ public class TransactionController {
                         authentication.getName(),
                         startDate,
                         endDate));
+    }
+
+    @GetMapping("/page")
+    public ResponseEntity<Page<TransactionResponse>> getTransactions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "transactionDate") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction,
+            Authentication authentication) {
+
+        return ResponseEntity.ok(
+                transactionService.getTransactions(
+                        authentication.getName(),
+                        page,
+                        size,
+                        sortBy,
+                        direction));
     }
 }

@@ -6,6 +6,7 @@ import com.finvision.category.entity.CategoryType;
 
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface TransactionService {
 
@@ -38,5 +39,13 @@ public interface TransactionService {
             String email,
             LocalDate startDate,
             LocalDate endDate
+    );
+
+    Page<TransactionResponse> getTransactions(
+            String email,
+            int page,
+            int size,
+            String sortBy,
+            String direction
     );
 }

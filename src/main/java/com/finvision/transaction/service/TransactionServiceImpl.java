@@ -13,6 +13,11 @@ import com.finvision.user.entity.User;
 import com.finvision.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 
 import java.time.LocalDate;
 import java.util.List;
@@ -161,6 +166,27 @@ public class TransactionServiceImpl implements TransactionService {
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+
+    @Override
+    public Page<TransactionResponse> getTransactions(
+            String email,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        User user = getUser(email);
+
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return transactionRepository.findByUser(user, pageable)
+                .map(this::mapToResponse);
     }
 
     // ================= Helper Methods =================
