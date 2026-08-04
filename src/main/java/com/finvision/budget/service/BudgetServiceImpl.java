@@ -1,7 +1,9 @@
 package com.finvision.budget.service.impl;
 
+
 import com.finvision.budget.dto.BudgetRequest;
 import com.finvision.budget.dto.BudgetResponse;
+import com.finvision.budget.dto.BudgetSummaryResponse;
 import com.finvision.budget.entity.Budget;
 import com.finvision.budget.repository.BudgetRepository;
 import com.finvision.budget.service.BudgetService;
@@ -12,8 +14,11 @@ import com.finvision.common.exception.DuplicateResourceException;
 import com.finvision.common.exception.ResourceNotFoundException;
 import com.finvision.user.entity.User;
 import com.finvision.user.repository.UserRepository;
+import com.finvision.transaction.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import java.math.RoundingMode;
+import java.math.BigDecimal;
 
 import java.util.List;
 
@@ -24,6 +29,7 @@ public class BudgetServiceImpl implements BudgetService {
     private final BudgetRepository budgetRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final TransactionRepository transactionRepository;
 
     @Override
     public BudgetResponse createBudget(String email, BudgetRequest request) {
@@ -140,6 +146,42 @@ public class BudgetServiceImpl implements BudgetService {
                 .amount(budget.getAmount())
                 .month(budget.getMonth())
                 .category(budget.getCategory().getName())
+                .build();
+    }
+
+
+    @Override
+    public BudgetSummaryResponse getBudgetSummary(Long budgetId,
+                                                  String email) {
+
+        User user = getUser(email);
+
+        Budget budget = budgetRepository.findByIdAndUser(budgetId, user)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Budget not found"));
+
+         BigDecimal spent =
+                 transactionRepository.getMonthlyExpense(
+                         user,
+                         budget.getCategory(),
+                         CategoryType.EXPENSE,
+                         budget.getMonth());
+        BigDecimal remaining =
+                budget.getAmount().subtract(spent);
+
+        double percentage = spent
+                .divide(budget.getAmount(), 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .doubleValue();
+
+        return BudgetSummaryResponse.builder()
+                .category(budget.getCategory().getName())
+                .month(budget.getMonth())
+                .budget(budget.getAmount())
+                .spent(spent)
+                .remaining(remaining)
+                .utilizationPercentage(percentage)
+                .exceeded(spent.compareTo(budget.getAmount()) > 0)
                 .build();
     }
 }

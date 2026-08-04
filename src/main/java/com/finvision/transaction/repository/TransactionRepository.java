@@ -1,5 +1,7 @@
 package com.finvision.transaction.repository;
 
+import com.finvision.category.entity.Category;
+
 import com.finvision.category.entity.CategoryType;
 import com.finvision.transaction.entity.Transaction;
 import com.finvision.user.entity.User;
@@ -10,6 +12,9 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.math.BigDecimal;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
@@ -34,4 +39,19 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             User user,
             String title
     );
+    @Query("""
+SELECT COALESCE(SUM(t.amount), 0)
+FROM Transaction t
+WHERE t.user = :user
+AND t.category = :category
+AND t.type = :type
+AND FUNCTION('DATE_FORMAT', t.transactionDate, '%Y-%m') = :month
+""")
+    BigDecimal getMonthlyExpense(
+            @Param("user") User user,
+            @Param("category") Category category,
+            @Param("type") CategoryType type,
+            @Param("month") String month
+    );
+
 }

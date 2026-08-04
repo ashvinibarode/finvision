@@ -2,6 +2,7 @@ package com.finvision.budget.service;
 
 import com.finvision.budget.dto.BudgetRequest;
 import com.finvision.budget.dto.BudgetResponse;
+import com.finvision.budget.dto.BudgetSummaryResponse;
 
 import java.util.List;
 
@@ -29,6 +30,10 @@ public interface BudgetService {
     );
 
     List<BudgetResponse> getAllBudgets(
+            String email
+    );
+    BudgetSummaryResponse getBudgetSummary(
+            Long budgetId,
             String email
     );
 }
