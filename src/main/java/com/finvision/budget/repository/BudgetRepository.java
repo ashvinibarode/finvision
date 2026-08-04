@@ -17,4 +17,5 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
             Category category,
             String month
     );
+    Optional<Budget> findByIdAndUser(Long id, User user);
 }
