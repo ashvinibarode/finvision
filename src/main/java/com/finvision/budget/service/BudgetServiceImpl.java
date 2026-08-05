@@ -165,7 +165,8 @@ public class BudgetServiceImpl implements BudgetService {
                          user,
                          budget.getCategory(),
                          CategoryType.EXPENSE,
-                         budget.getMonth());
+                         budget.getMonth()
+                 );
         BigDecimal remaining =
                 budget.getAmount().subtract(spent);
 
