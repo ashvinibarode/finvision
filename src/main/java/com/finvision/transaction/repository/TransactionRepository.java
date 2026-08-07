@@ -41,6 +41,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             String title
     );
 
+    List<Transaction> findTop5ByUserOrderByTransactionDateDesc(User user);
+
     @Query("""
     SELECT COALESCE(SUM(t.amount), 0)
     FROM Transaction t
@@ -74,6 +76,20 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
       AND t.type = :type
 """)
     BigDecimal getTotalExpense(
+            @Param("user") User user,
+            @Param("type") CategoryType type
+    );
+
+    @Query("""
+SELECT c.name, SUM(t.amount)
+FROM Transaction t
+JOIN t.category c
+WHERE t.user = :user
+AND t.type = :type
+GROUP BY c.name
+ORDER BY SUM(t.amount) DESC
+""")
+    List<Object[]> getTopExpenseCategories(
             @Param("user") User user,
             @Param("type") CategoryType type
     );
