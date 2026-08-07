@@ -15,7 +15,10 @@ public class TransactionResponse {
     private String title;
     private String description;
     private BigDecimal amount;
+
     private CategoryType type;
+
     private String category;
+
     private LocalDate transactionDate;
 }

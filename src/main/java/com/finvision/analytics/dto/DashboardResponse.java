@@ -1,5 +1,6 @@
 package com.finvision.analytics.dto;
 
+import com.finvision.transaction.dto.TransactionResponse;
 import lombok.Builder;
 import lombok.Data;
 
@@ -21,4 +22,6 @@ public class DashboardResponse {
     private Long totalBudgets;
 
     private List<CategoryExpenseResponse> topExpenseCategories;
+
+    private List<TransactionResponse> recentTransactions;
 }

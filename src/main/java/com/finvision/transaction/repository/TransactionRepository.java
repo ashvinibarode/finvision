@@ -26,7 +26,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     Page<Transaction> findByUser(User user, Pageable pageable);
 
-    List<Transaction> findByUserAndType(User user, CategoryType type);
+    List<Transaction> findByUserAndCategory_Type(
+            User user,
+            CategoryType type
+    );
 
     List<Transaction> findByUserAndCategoryId(User user, Long categoryId);
 
@@ -48,7 +51,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     FROM Transaction t
     WHERE t.user = :user
       AND t.category = :category
-      AND t.type = :type
+      AND t.category.type = :type
       AND FUNCTION('DATE_FORMAT', t.transactionDate, '%Y-%m') = :month
 """)
     BigDecimal getMonthlyExpense(
@@ -62,7 +65,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     SELECT COALESCE(SUM(t.amount), 0)
     FROM Transaction t
     WHERE t.user = :user
-      AND t.type = :type
+     AND t.category.type = :type
 """)
     BigDecimal getTotalIncome(
             @Param("user") User user,
@@ -73,7 +76,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     SELECT COALESCE(SUM(t.amount), 0)
     FROM Transaction t
     WHERE t.user = :user
-      AND t.type = :type
+     AND t.category.type = :type
 """)
     BigDecimal getTotalExpense(
             @Param("user") User user,
@@ -85,7 +88,7 @@ SELECT c.name, SUM(t.amount)
 FROM Transaction t
 JOIN t.category c
 WHERE t.user = :user
-AND t.type = :type
+AND t.category.type = :type
 GROUP BY c.name
 ORDER BY SUM(t.amount) DESC
 """)

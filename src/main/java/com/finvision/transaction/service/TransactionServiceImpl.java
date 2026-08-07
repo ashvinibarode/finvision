@@ -38,13 +38,12 @@ public class TransactionServiceImpl implements TransactionService {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
-        validateCategory(category, request);
 
+        // No validation required
         Transaction transaction = Transaction.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .amount(request.getAmount())
-                .type(request.getType())
                 .transactionDate(request.getTransactionDate())
                 .category(category)
                 .user(user)
@@ -67,12 +66,11 @@ public class TransactionServiceImpl implements TransactionService {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
-        validateCategory(category, request);
+        // No validation required
 
         transaction.setTitle(request.getTitle());
         transaction.setDescription(request.getDescription());
         transaction.setAmount(request.getAmount());
-        transaction.setType(request.getType());
         transaction.setCategory(category);
         transaction.setTransactionDate(request.getTransactionDate());
 
@@ -117,12 +115,13 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionResponse> getTransactionsByType(String email,
-                                                           CategoryType type) {
+    public List<TransactionResponse> getTransactionsByType(
+            String email,
+            CategoryType type) {
 
         User user = getUser(email);
 
-        return transactionRepository.findByUserAndType(user, type)
+        return transactionRepository.findByUserAndCategory_Type(user, type)
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
@@ -198,14 +197,6 @@ public class TransactionServiceImpl implements TransactionService {
                         new ResourceNotFoundException("User not found"));
     }
 
-    private void validateCategory(Category category,
-                                  TransactionRequest request) {
-
-        if (category.getType() != request.getType()) {
-            throw new IllegalArgumentException(
-                    "Category type does not match transaction type");
-        }
-    }
 
     private TransactionResponse mapToResponse(Transaction transaction) {
 
@@ -214,9 +205,10 @@ public class TransactionServiceImpl implements TransactionService {
                 .title(transaction.getTitle())
                 .description(transaction.getDescription())
                 .amount(transaction.getAmount())
-                .type(transaction.getType())
+                .type(transaction.getCategory().getType())
                 .category(transaction.getCategory().getName())
                 .transactionDate(transaction.getTransactionDate())
                 .build();
     }
+
 }

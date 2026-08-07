@@ -1,6 +1,5 @@
 package com.finvision.transaction.dto;
 
-import com.finvision.category.entity.CategoryType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,9 +19,6 @@ public class TransactionRequest {
     @NotNull
     @DecimalMin("0.01")
     private BigDecimal amount;
-
-    @NotNull
-    private CategoryType type;
 
     @NotNull
     private Long categoryId;

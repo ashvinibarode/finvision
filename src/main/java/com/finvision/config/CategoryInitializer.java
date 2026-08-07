@@ -36,7 +36,6 @@ public class CategoryInitializer implements CommandLineRunner {
             categoryRepository.save(
                     Category.builder()
                             .name(name)
-                            .type(type)
                             .systemCategory(true)
                             .build()
             );
