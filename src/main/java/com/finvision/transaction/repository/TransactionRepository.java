@@ -3,7 +3,6 @@ package com.finvision.transaction.repository;
 import com.finvision.category.entity.Category;
 import com.finvision.category.entity.CategoryType;
 import com.finvision.transaction.entity.Transaction;
-
 import com.finvision.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +17,10 @@ import java.util.Optional;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
+
+    // Basic Transaction Queries
+
+
     long countByUser(User user);
 
     Optional<Transaction> findByIdAndUser(Long id, User user);
@@ -31,7 +34,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             CategoryType type
     );
 
-    List<Transaction> findByUserAndCategoryId(User user, Long categoryId);
+    List<Transaction> findByUserAndCategoryId(
+            User user,
+            Long categoryId
+    );
 
     List<Transaction> findByUserAndTransactionDateBetween(
             User user,
@@ -44,16 +50,21 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             String title
     );
 
-    List<Transaction> findTop5ByUserOrderByTransactionDateDesc(User user);
+    List<Transaction> findTop5ByUserOrderByTransactionDateDesc(
+            User user
+    );
+
+
+    // Budget Analytics
 
     @Query("""
-    SELECT COALESCE(SUM(t.amount), 0)
-    FROM Transaction t
-    WHERE t.user = :user
-      AND t.category = :category
-      AND t.category.type = :type
-      AND FUNCTION('DATE_FORMAT', t.transactionDate, '%Y-%m') = :month
-""")
+            SELECT COALESCE(SUM(t.amount), 0)
+            FROM Transaction t
+            WHERE t.user = :user
+              AND t.category = :category
+              AND t.category.type = :type
+              AND FUNCTION('DATE_FORMAT', t.transactionDate, '%Y-%m') = :month
+            """)
     BigDecimal getMonthlyExpense(
             @Param("user") User user,
             @Param("category") Category category,
@@ -61,75 +72,87 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("month") String month
     );
 
+
+    // Dashboard Analytics
+
+
     @Query("""
-    SELECT COALESCE(SUM(t.amount), 0)
-    FROM Transaction t
-    WHERE t.user = :user
-     AND t.category.type = :type
-""")
+            SELECT COALESCE(SUM(t.amount), 0)
+            FROM Transaction t
+            WHERE t.user = :user
+              AND t.category.type = :type
+            """)
     BigDecimal getTotalIncome(
             @Param("user") User user,
             @Param("type") CategoryType type
     );
 
     @Query("""
-    SELECT COALESCE(SUM(t.amount), 0)
-    FROM Transaction t
-    WHERE t.user = :user
-     AND t.category.type = :type
-""")
+            SELECT COALESCE(SUM(t.amount), 0)
+            FROM Transaction t
+            WHERE t.user = :user
+              AND t.category.type = :type
+            """)
     BigDecimal getTotalExpense(
             @Param("user") User user,
             @Param("type") CategoryType type
     );
 
     @Query("""
-SELECT c.name, SUM(t.amount)
-FROM Transaction t
-JOIN t.category c
-WHERE t.user = :user
-AND t.category.type = :type
-GROUP BY c.name
-ORDER BY SUM(t.amount) DESC
-""")
+            SELECT c.name, SUM(t.amount)
+            FROM Transaction t
+            JOIN t.category c
+            WHERE t.user = :user
+              AND c.type = :type
+            GROUP BY c.name
+            ORDER BY SUM(t.amount) DESC
+            """)
     List<Object[]> getTopExpenseCategories(
             @Param("user") User user,
             @Param("type") CategoryType type
     );
 
-    @Query("""
-SELECT COALESCE(SUM(t.amount),0)
-FROM Transaction t
-WHERE t.user = :user
-AND t.category.type =
-com.finvision.category.entity.CategoryType.INCOME
-AND FUNCTION('DATE_FORMAT', t.transactionDate,'%Y-%m') = :month
-""")
-    BigDecimal getMonthlyIncome(
-            @Param("user") User user,
-            @Param("month") String month);
 
-    @Query("""
-SELECT COALESCE(SUM(t.amount),0)
-FROM Transaction t
-WHERE t.user = :user
-AND t.category.type =
-com.finvision.category.entity.CategoryType.EXPENSE
-AND FUNCTION('DATE_FORMAT', t.transactionDate,'%Y-%m') = :month
-""")
-    BigDecimal getMonthlyExpense(
-            @Param("user") User user,
-            @Param("month") String month);
+    // Report Analytics
 
 
     @Query("""
-SELECT COUNT(t)
-FROM Transaction t
-WHERE t.user = :user
-AND FUNCTION('DATE_FORMAT', t.transactionDate,'%Y-%m') = :month
-""")
-    Long getMonthlyTransactionCount(
+            SELECT COALESCE(SUM(t.amount), 0)
+            FROM Transaction t
+            WHERE t.user = :user
+              AND t.category.type = :type
+              AND t.transactionDate BETWEEN :startDate AND :endDate
+            """)
+    BigDecimal getIncomeBetweenDates(
             @Param("user") User user,
-            @Param("month") String month);
+            @Param("type") CategoryType type,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 
+    @Query("""
+            SELECT COALESCE(SUM(t.amount), 0)
+            FROM Transaction t
+            WHERE t.user = :user
+              AND t.category.type = :type
+              AND t.transactionDate BETWEEN :startDate AND :endDate
+            """)
+    BigDecimal getExpenseBetweenDates(
+            @Param("user") User user,
+            @Param("type") CategoryType type,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Query("""
+            SELECT COUNT(t)
+            FROM Transaction t
+            WHERE t.user = :user
+              AND t.transactionDate BETWEEN :startDate AND :endDate
+            """)
+    Long countTransactionsBetweenDates(
+            @Param("user") User user,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }

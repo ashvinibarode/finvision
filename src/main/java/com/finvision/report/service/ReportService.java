@@ -2,10 +2,13 @@ package com.finvision.report.service;
 
 import com.finvision.report.dto.ReportSummaryResponse;
 
+import java.time.LocalDate;
+
 public interface ReportService {
 
-    ReportSummaryResponse getMonthlySummary(
+    ReportSummaryResponse getReport(
             String email,
-            String month
+            LocalDate startDate,
+            LocalDate endDate
     );
 }

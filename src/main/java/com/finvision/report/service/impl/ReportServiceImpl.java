@@ -8,6 +8,9 @@ import com.finvision.user.repository.UserRepository;
 import com.finvision.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
+import com.finvision.category.entity.CategoryType;
+
 
 import java.math.BigDecimal;
 
@@ -19,31 +22,47 @@ public class ReportServiceImpl implements ReportService {
     private final TransactionRepository transactionRepository;
 
     @Override
-    public ReportSummaryResponse getMonthlySummary(
+    public ReportSummaryResponse getReport(
             String email,
-            String month) {
+            LocalDate startDate,
+            LocalDate endDate) {
+
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException(
+                    "Start date cannot be after end date");
+        }
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("User not found"));
 
         BigDecimal income =
-                transactionRepository.getMonthlyIncome(user, month);
+                transactionRepository.getIncomeBetweenDates(
+                        user,
+                        CategoryType.INCOME,
+                        startDate,
+                        endDate);
 
         BigDecimal expense =
-                transactionRepository.getMonthlyExpense(user, month);
-
-        Long count =
-                transactionRepository.getMonthlyTransactionCount(
+                transactionRepository.getExpenseBetweenDates(
                         user,
-                        month);
+                        CategoryType.INCOME,
+                        startDate,
+                        endDate);
+
+        Long transactionCount =
+                transactionRepository.countTransactionsBetweenDates(
+                        user,
+                        startDate,
+                        endDate);
 
         return ReportSummaryResponse.builder()
-                .month(month)
                 .totalIncome(income)
                 .totalExpense(expense)
                 .balance(income.subtract(expense))
-                .totalTransactions(count)
+                .totalTransactions(transactionCount)
+                .month(startDate + " to " + endDate)
                 .build();
     }
+
 }
