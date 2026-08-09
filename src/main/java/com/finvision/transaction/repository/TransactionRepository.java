@@ -97,5 +97,39 @@ ORDER BY SUM(t.amount) DESC
             @Param("type") CategoryType type
     );
 
+    @Query("""
+SELECT COALESCE(SUM(t.amount),0)
+FROM Transaction t
+WHERE t.user = :user
+AND t.category.type =
+com.finvision.category.entity.CategoryType.INCOME
+AND FUNCTION('DATE_FORMAT', t.transactionDate,'%Y-%m') = :month
+""")
+    BigDecimal getMonthlyIncome(
+            @Param("user") User user,
+            @Param("month") String month);
+
+    @Query("""
+SELECT COALESCE(SUM(t.amount),0)
+FROM Transaction t
+WHERE t.user = :user
+AND t.category.type =
+com.finvision.category.entity.CategoryType.EXPENSE
+AND FUNCTION('DATE_FORMAT', t.transactionDate,'%Y-%m') = :month
+""")
+    BigDecimal getMonthlyExpense(
+            @Param("user") User user,
+            @Param("month") String month);
+
+
+    @Query("""
+SELECT COUNT(t)
+FROM Transaction t
+WHERE t.user = :user
+AND FUNCTION('DATE_FORMAT', t.transactionDate,'%Y-%m') = :month
+""")
+    Long getMonthlyTransactionCount(
+            @Param("user") User user,
+            @Param("month") String month);
 
 }
