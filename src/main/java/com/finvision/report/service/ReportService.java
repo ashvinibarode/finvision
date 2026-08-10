@@ -11,4 +11,10 @@ public interface ReportService {
             LocalDate startDate,
             LocalDate endDate
     );
+
+    byte[] generatePdfReport(
+            String email,
+            LocalDate startDate,
+            LocalDate endDate
+    );
 }

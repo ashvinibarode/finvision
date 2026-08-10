@@ -30,4 +30,28 @@ public class ReportController {
                 )
         );
     }
+
+    @GetMapping("/pdf")
+    public ResponseEntity<byte[]> downloadPdfReport(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate,
+            Authentication authentication) {
+
+        byte[] pdf = reportService.generatePdfReport(
+                authentication.getName(),
+                startDate,
+                endDate
+        );
+
+        return ResponseEntity.ok()
+                .header(
+                        "Content-Disposition",
+                        "attachment; filename=finvision-report.pdf"
+                )
+                .header(
+                        "Content-Type",
+                        "application/pdf"
+                )
+                .body(pdf);
+    }
 }
