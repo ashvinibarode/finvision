@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FinVision Dashboard</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <aside class="sidebar">
+
+        <h2>FinVision</h2>
+
+        <nav>
+            <a href="#" class="active">Dashboard</a>
+            <a href="#">Transactions</a>
+            <a href="#">Budgets</a>
+            <a href="#">Reports</a>
+            <a href="#">Profile</a>
+        </nav>
+
+        <button id="logoutBtn">Logout</button>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div>
+                <h1>Financial Dashboard</h1>
+                <p>Track your financial performance</p>
+            </div>
+        </header>
+
+
+        <!-- Summary Cards -->
+
+        <section class="summary-cards">
+
+            <div class="card">
+                <h3>Total Income</h3>
+                <p id="totalIncome">₹0</p>
+            </div>
+
+            <div class="card">
+                <h3>Total Expense</h3>
+                <p id="totalExpense">₹0</p>
+            </div>
+
+            <div class="card">
+                <h3>Balance</h3>
+                <p id="balance">₹0</p>
+            </div>
+
+            <div class="card">
+                <h3>Transactions</h3>
+                <p id="totalTransactions">0</p>
+            </div>
+
+        </section>
+
+
+        <!-- Charts -->
+
+        <section class="charts">
+
+            <div class="chart-card">
+
+                <h2>Income vs Expense</h2>
+
+                <canvas id="incomeExpenseChart"></canvas>
+
+            </div>
+
+
+            <div class="chart-card">
+
+                <h2>Expense by Category</h2>
+
+                <canvas id="categoryExpenseChart"></canvas>
+
+            </div>
+
+        </section>
+
+
+        <!-- Recent Transactions -->
+
+        <section class="transactions-card">
+
+            <div class="section-header">
+
+                <h2>Recent Transactions</h2>
+
+                <a href="#">View All</a>
+
+            </div>
+
+            <table>
+
+                <thead>
+
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                </tr>
+
+                </thead>
+
+                <tbody id="recentTransactions">
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/dashboard.js"></script>
+
+</body>
+
+</html>
