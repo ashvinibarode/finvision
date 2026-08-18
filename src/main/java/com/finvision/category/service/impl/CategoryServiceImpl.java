@@ -34,6 +34,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setName(request.getName());
         category.setType(request.getType());
         category.setUser(user);
+        category.setSystemCategory(false);
 
         Category savedCategory =
                 categoryRepository.save(category);
@@ -48,13 +49,19 @@ public class CategoryServiceImpl implements CategoryService {
 
         User user = getUser(email);
 
-        return categoryRepository
-                .findByUser(user)
-                .stream()
+        List<Category> systemCategories =
+                categoryRepository.findBySystemCategoryTrue();
+
+        List<Category> userCategories =
+                categoryRepository.findByUser(user);
+
+        return java.util.stream.Stream.concat(
+                        systemCategories.stream(),
+                        userCategories.stream()
+                )
                 .map(this::mapToResponse)
                 .toList();
     }
-
 
     @Override
     public CategoryResponse getCategoryById(

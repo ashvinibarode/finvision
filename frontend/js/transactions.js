@@ -1,7 +1,7 @@
 let currentPage = 0;
 
 const pageSize = 10;
-
+let categories = [];
 
 
 // PAGE LOAD
@@ -19,10 +19,38 @@ document.addEventListener(
 
         setupAddTransaction();
 
+        await loadCategories();
+
+        await loadTransactions();
     }
 );
 
 
+//load categories
+
+async function loadCategories() {
+
+    try {
+
+        const data = await getCategories();
+
+        if (!data) {
+            return;
+        }
+
+        categories = data;
+
+        populateCategoryFilter(data);
+
+    } catch (error) {
+
+        console.error(
+            "Category loading error:",
+            error
+        );
+
+    }
+}
 
 // LOAD TRANSACTIONS
 
@@ -61,7 +89,27 @@ async function loadTransactions() {
     }
 }
 
+function populateCategoryFilter(categories) {
 
+    const select =
+        document.getElementById("categoryFilter");
+
+    select.innerHTML =
+        `<option value="">All Categories</option>`;
+
+    categories.forEach(category => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = category.id;
+
+        option.textContent = category.name;
+
+        select.appendChild(option);
+
+    });
+}
 
 // RENDER TRANSACTIONS
 
@@ -285,11 +333,7 @@ async function deleteTransaction(id) {
         );
 
 
-        /*
-         * If the current page becomes empty
-         * after deleting the last transaction,
-         * move back to the previous page.
-         */
+
 
         const data =
             await getTransactions(

@@ -138,7 +138,7 @@ async function getCategories() {
         {
             method: "GET",
             headers: {
-                "Authorization": `Bearer ${token}`,
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
                 "Content-Type": "application/json"
             }
         }
