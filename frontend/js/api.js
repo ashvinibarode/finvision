@@ -219,6 +219,47 @@ async function getTransaction(id) {
 }
 
 
+//create transaction
+async function createTransaction(transaction) {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    const response = await fetch(
+        `${API_BASE_URL}/transactions`,
+        {
+            method: "POST",
+
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(transaction)
+        }
+    );
+
+    if (!response.ok) {
+
+        const errorText = await response.text();
+
+        console.error(
+            "Transaction API Error:",
+            response.status,
+            errorText
+        );
+
+        throw new Error(
+            `Transaction failed (${response.status})`
+        );
+    }
+
+    return await response.json();
+}
 
 // TRANSACTION - CREATE / UPDATE
 
