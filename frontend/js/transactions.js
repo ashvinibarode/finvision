@@ -1,32 +1,24 @@
 let currentPage = 0;
-
 const pageSize = 10;
+
 let categories = [];
-
-
-// PAGE LOAD
 
 
 document.addEventListener(
     "DOMContentLoaded",
-    () => {
-
-        loadTransactions();
-
-        setupPagination();
-
-        setupLogout();
-
-        setupAddTransaction();
+    async () => {
 
         await loadCategories();
 
         await loadTransactions();
+
     }
 );
 
 
-//load categories
+
+// Load Categories
+
 
 async function loadCategories() {
 
@@ -48,51 +40,18 @@ async function loadCategories() {
             "Category loading error:",
             error
         );
-
     }
 }
 
-// LOAD TRANSACTIONS
-
-async function loadTransactions() {
-
-    try {
-
-        const data =
-            await getTransactions(
-                currentPage,
-                pageSize
-            );
-
-
-        if (!data) {
-            return;
-        }
-
-
-        renderTransactions(data);
-
-        updatePagination(data);
-
-
-    } catch (error) {
-
-        console.error(
-            "Transaction loading error:",
-            error
-        );
-
-
-        alert(
-            "Unable to load transactions"
-        );
-    }
-}
 
 function populateCategoryFilter(categories) {
 
     const select =
         document.getElementById("categoryFilter");
+
+    if (!select) {
+        return;
+    }
 
     select.innerHTML =
         `<option value="">All Categories</option>`;
@@ -111,8 +70,39 @@ function populateCategoryFilter(categories) {
     });
 }
 
-// RENDER TRANSACTIONS
 
+
+// Load Transactions
+
+
+async function loadTransactions() {
+
+    try {
+
+        const data =
+            await getTransactions(
+                currentPage,
+                pageSize
+            );
+
+        if (!data) {
+            return;
+        }
+
+        renderTransactions(data);
+
+    } catch (error) {
+
+        console.error(
+            "Transaction loading error:",
+            error
+        );
+    }
+}
+
+
+
+// Render Transactions
 
 function renderTransactions(data) {
 
@@ -121,193 +111,107 @@ function renderTransactions(data) {
             "transactionTableBody"
         );
 
-
     if (!tableBody) {
         return;
     }
 
-
     tableBody.innerHTML = "";
 
 
-    if (
-        !data.content ||
-        data.content.length === 0
-    ) {
+    data.forEach(transaction => {
 
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="5">
-                    No transactions found
-                </td>
-            </tr>
+        const row =
+            document.createElement("tr");
+
+
+        row.innerHTML = `
+            <td>${transaction.title}</td>
+
+            <td>${transaction.category}</td>
+
+            <td>${formatCurrency(transaction.amount)}</td>
+
+            <td>${transaction.transactionDate}</td>
+
+            <td>
+
+                <button
+                    onclick="editTransaction(${transaction.id})">
+                    Edit
+                </button>
+
+                <button
+                    onclick="deleteTransaction(${transaction.id})">
+                    Delete
+                </button>
+
+            </td>
         `;
 
-        return;
-    }
 
+        tableBody.appendChild(row);
 
-    data.content.forEach(
-        transaction => {
-
-            const row =
-                document.createElement("tr");
-
-
-            row.innerHTML = `
-
-                <td>
-                    ${transaction.title || "-"}
-                </td>
-
-                <td>
-                    ${transaction.category || "-"}
-                </td>
-
-                <td>
-                    ${formatCurrency(
-                        transaction.amount
-                    )}
-                </td>
-
-                <td>
-                    ${transaction.transactionDate || "-"}
-                </td>
-
-                <td>
-
-                    <button
-                        type="button"
-                        onclick="editTransaction(${transaction.id})">
-                        Edit
-                    </button>
-
-                    <button
-                        type="button"
-                        onclick="deleteTransaction(${transaction.id})">
-                        Delete
-                    </button>
-
-                </td>
-
-            `;
-
-
-            tableBody.appendChild(row);
-
-        }
-    );
+    });
 }
 
 
-// PAGINATION
+// Pagination
 
 
 function updatePagination(data) {
 
     const pageInfo =
-        document.getElementById(
-            "pageInfo"
-        );
-
-
-    const previousBtn =
-        document.getElementById(
-            "previousBtn"
-        );
-
-
-    const nextBtn =
-        document.getElementById(
-            "nextBtn"
-        );
-
+        document.getElementById("pageInfo");
 
     if (pageInfo) {
 
-        const totalPages =
-            data.totalPages || 0;
-
-
         pageInfo.textContent =
-            totalPages > 0
-                ? `Page ${data.number + 1} of ${totalPages}`
-                : "Page 0 of 0";
+            `Page ${data.number + 1} of ${data.totalPages}`;
     }
 
 
-    if (previousBtn) {
-
-        previousBtn.disabled =
-            data.first;
-    }
+    document.getElementById(
+        "previousBtn"
+    ).disabled = data.first;
 
 
-    if (nextBtn) {
-
-        nextBtn.disabled =
-            data.last;
-    }
+    document.getElementById(
+        "nextBtn"
+    ).disabled = data.last;
 }
 
 
+document
+    .getElementById("previousBtn")
+    .addEventListener(
+        "click",
+        () => {
 
-// PAGINATION EVENT LISTENERS
+            if (currentPage > 0) {
 
+                currentPage--;
 
-function setupPagination() {
-
-    const previousBtn =
-        document.getElementById(
-            "previousBtn"
-        );
-
-
-    const nextBtn =
-        document.getElementById(
-            "nextBtn"
-        );
-
-
-    if (previousBtn) {
-
-        previousBtn.addEventListener(
-            "click",
-            () => {
-
-                if (currentPage > 0) {
-
-                    currentPage--;
-
-                    loadTransactions();
-                }
-
+                loadTransactions();
             }
-        );
-    }
+        }
+    );
 
 
-    if (nextBtn) {
+document
+    .getElementById("nextBtn")
+    .addEventListener(
+        "click",
+        () => {
 
-        nextBtn.addEventListener(
-            "click",
-            () => {
+            currentPage++;
 
-                if (!nextBtn.disabled) {
-
-                    currentPage++;
-
-                    loadTransactions();
-                }
-
-            }
-        );
-    }
-}
+            loadTransactions();
+        }
+    );
 
 
 
-// DELETE TRANSACTION
+// Delete
 
 
 async function deleteTransaction(id) {
@@ -317,39 +221,36 @@ async function deleteTransaction(id) {
             "Are you sure you want to delete this transaction?"
         );
 
-
     if (!confirmed) {
         return;
     }
 
 
+    const token =
+        localStorage.getItem("token");
+
+
     try {
 
-        await deleteTransactionApi(id);
+        const response =
+            await fetch(
+                `${API_BASE_URL}/transactions/${id}`,
+                {
+                    method: "DELETE",
 
-
-        alert(
-            "Transaction deleted successfully"
-        );
-
-
-
-
-        const data =
-            await getTransactions(
-                currentPage,
-                pageSize
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    }
+                }
             );
 
 
-        if (
-            data &&
-            data.content &&
-            data.content.length === 0 &&
-            currentPage > 0
-        ) {
+        if (!response.ok) {
 
-            currentPage--;
+            throw new Error(
+                "Failed to delete transaction"
+            );
         }
 
 
@@ -358,14 +259,9 @@ async function deleteTransaction(id) {
 
     } catch (error) {
 
-        console.error(
-            "Delete transaction error:",
-            error
-        );
-
+        console.error(error);
 
         alert(
-            error.message ||
             "Unable to delete transaction"
         );
     }
@@ -373,7 +269,7 @@ async function deleteTransaction(id) {
 
 
 
-// EDIT TRANSACTION
+// Edit
 
 
 function editTransaction(id) {
@@ -384,20 +280,16 @@ function editTransaction(id) {
 
 
 
-// ADD TRANSACTION
-
-function setupAddTransaction() {
-
-    const addTransactionBtn =
-        document.getElementById(
-            "addTransactionBtn"
-        );
+// Add Transaction
 
 
-    if (!addTransactionBtn) {
-        return;
-    }
+const addTransactionBtn =
+    document.getElementById(
+        "addTransactionBtn"
+    );
 
+
+if (addTransactionBtn) {
 
     addTransactionBtn.addEventListener(
         "click",
@@ -412,41 +304,7 @@ function setupAddTransaction() {
 
 
 
-// LOGOUT
-
-
-function setupLogout() {
-
-    const logoutBtn =
-        document.getElementById(
-            "logoutBtn"
-        );
-
-
-    if (!logoutBtn) {
-        return;
-    }
-
-
-    logoutBtn.addEventListener(
-        "click",
-        () => {
-
-            localStorage.removeItem(
-                "token"
-            );
-
-
-            window.location.href =
-                "login.html";
-
-        }
-    );
-}
-
-
-
-// CURRENCY FORMATTER
+// Currency
 
 
 function formatCurrency(amount) {
@@ -457,5 +315,5 @@ function formatCurrency(amount) {
             style: "currency",
             currency: "INR"
         }
-    ).format(amount || 0);
+    ).format(amount);
 }

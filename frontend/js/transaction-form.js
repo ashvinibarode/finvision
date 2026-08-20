@@ -1,7 +1,10 @@
 let categories = [];
+let editingTransactionId = null;
+
 
 
 // PAGE LOAD
+
 
 document.addEventListener(
     "DOMContentLoaded",
@@ -9,7 +12,9 @@ document.addEventListener(
 );
 
 
+
 // INITIALIZE FORM
+
 
 async function initializeTransactionForm() {
 
@@ -17,54 +22,193 @@ async function initializeTransactionForm() {
 
         categories = await getCategories();
 
+        if (!categories) {
+            return;
+        }
+
         populateCategoryDropdown();
 
-        setDefaultDate();
+
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
+
+        const id = params.get("id");
+
+
+        if (id) {
+
+            editingTransactionId =
+                Number(id);
+
+            await loadTransactionForEdit(
+                editingTransactionId
+            );
+
+        } else {
+
+            setDefaultDate();
+
+        }
 
     } catch (error) {
 
         console.error(
-            "Error loading transaction form:",
+            "Form initialization error:",
             error
         );
 
         showMessage(
-            "Unable to load categories",
+            error.message ||
+            "Unable to initialize form",
             true
         );
     }
 }
 
 
+
+// LOAD TRANSACTION FOR EDIT
+
+
+async function loadTransactionForEdit(id) {
+
+    try {
+
+        showMessage(
+            "Loading transaction..."
+        );
+
+
+        const transaction =
+            await getTransactionById(id);
+
+
+        if (!transaction) {
+            return;
+        }
+
+
+        // Change page title
+
+        document.getElementById(
+            "formTitle"
+        ).textContent =
+            "Edit Transaction";
+
+
+        // Change submit button
+
+        document.getElementById(
+            "submitBtn"
+        ).textContent =
+            "Update Transaction";
+
+
+        // Fill title
+
+        document.getElementById(
+            "title"
+        ).value =
+            transaction.title || "";
+
+
+        // Fill description
+
+        document.getElementById(
+            "description"
+        ).value =
+            transaction.description || "";
+
+
+        // Fill amount
+
+        document.getElementById(
+            "amount"
+        ).value =
+            transaction.amount ?? "";
+
+
+        // Fill date
+
+        document.getElementById(
+            "transactionDate"
+        ).value =
+            transaction.transactionDate || "";
+
+
+        // Fill category
+
+        document.getElementById(
+            "category"
+        ).value =
+            transaction.categoryId ?? "";
+
+
+        showMessage("");
+
+    } catch (error) {
+
+        console.error(
+            "Transaction loading error:",
+            error
+        );
+
+        showMessage(
+            error.message ||
+            "Unable to load transaction",
+            true
+        );
+    }
+}
+
+
+
 // CATEGORY DROPDOWN
+
 
 function populateCategoryDropdown() {
 
     const categorySelect =
-        document.getElementById("category");
+        document.getElementById(
+            "category"
+        );
 
-    categorySelect.innerHTML =
-        `<option value="">
+
+    categorySelect.innerHTML = `
+        <option value="">
             Select Category
-        </option>`;
+        </option>
+    `;
+
 
     categories.forEach(category => {
 
         const option =
-            document.createElement("option");
+            document.createElement(
+                "option"
+            );
 
-        option.value = category.id;
+
+        option.value =
+            category.id;
+
 
         option.textContent =
             `${category.name} (${category.type})`;
 
-        categorySelect.appendChild(option);
 
+        categorySelect.appendChild(
+            option
+        );
     });
 }
 
 
+
 // DEFAULT DATE
+
 
 function setDefaultDate() {
 
@@ -73,16 +217,20 @@ function setDefaultDate() {
             "transactionDate"
         );
 
+
     const today =
         new Date()
             .toISOString()
             .split("T")[0];
 
+
     dateInput.value = today;
 }
 
 
+
 // FORM SUBMIT
+
 
 document
     .getElementById("transactionForm")
@@ -92,12 +240,16 @@ document
     );
 
 
+
 // HANDLE SUBMIT
+
 
 async function handleTransactionSubmit(event) {
 
     event.preventDefault();
 
+
+    // GET FORM VALUES
 
     const title =
         document
@@ -131,7 +283,9 @@ async function handleTransactionSubmit(event) {
 
     const transactionDate =
         document
-            .getElementById("transactionDate")
+            .getElementById(
+                "transactionDate"
+            )
             .value;
 
 
@@ -185,46 +339,69 @@ async function handleTransactionSubmit(event) {
 
     const transaction = {
 
-        title: document
-            .getElementById("title")
-            .value
-            .trim(),
+        title: title,
 
-        description: document
-            .getElementById("description")
-            .value
-            .trim(),
+        description: description,
 
-        amount: Number(
-            document.getElementById("amount").value
-        ),
+        amount: amount,
 
-        categoryId: Number(
-            document.getElementById("category").value
-        ),
+        categoryId: categoryId,
 
-        transactionDate: document
-            .getElementById("transactionDate")
-            .value
+        transactionDate: transactionDate
     };
 
 
     try {
 
-        showMessage(
-            "Saving transaction..."
-        );
+        // ========================
+        // EDIT MODE
+        // ========================
+
+        if (editingTransactionId) {
+
+            showMessage(
+                "Updating transaction..."
+            );
 
 
-        await createTransaction(
-            transaction
-        );
+            await updateTransaction(
+                editingTransactionId,
+                transaction
+            );
 
 
-        showMessage(
-            "Transaction created successfully"
-        );
+            showMessage(
+                "Transaction updated successfully"
+            );
 
+
+        }
+
+        // ========================
+        // CREATE MODE
+        // ========================
+
+        else {
+
+            showMessage(
+                "Saving transaction..."
+            );
+
+
+            await createTransaction(
+                transaction
+            );
+
+
+            showMessage(
+                "Transaction created successfully"
+            );
+        }
+
+
+        // ========================
+        // REDIRECT
+        // ========================
 
         setTimeout(() => {
 
@@ -237,21 +414,23 @@ async function handleTransactionSubmit(event) {
     } catch (error) {
 
         console.error(
-            "Transaction creation error:",
+            "Transaction save/update error:",
             error
         );
 
 
         showMessage(
             error.message ||
-            "Unable to create transaction",
+            "Unable to save transaction",
             true
         );
     }
 }
 
 
+
 // MESSAGE
+
 
 function showMessage(
     message,
@@ -264,16 +443,29 @@ function showMessage(
         );
 
 
+    if (!messageElement) {
+        return;
+    }
+
+
     messageElement.textContent =
         message;
 
 
     messageElement.style.marginTop =
         "15px";
+
+
+    messageElement.style.display =
+        message
+            ? "block"
+            : "none";
 }
 
 
+
 // CANCEL BUTTON
+// ===============================
 
 document
     .getElementById("cancelBtn")
@@ -288,10 +480,12 @@ document
     );
 
 
+// ===============================
 // LOGOUT
-
 const logoutBtn =
-    document.getElementById("logoutBtn");
+    document.getElementById(
+        "logoutBtn"
+    );
 
 
 if (logoutBtn) {
@@ -303,6 +497,7 @@ if (logoutBtn) {
             localStorage.removeItem(
                 "token"
             );
+
 
             window.location.href =
                 "login.html";

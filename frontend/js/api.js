@@ -126,6 +126,71 @@ async function getTransactions(
 }
 
 
+async function getTransactionById(id) {
+
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(
+        `${API_BASE_URL}/transactions/${id}`,
+        {
+            method: "GET",
+
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
+        }
+    );
+
+    if (response.status === 401 || response.status === 403) {
+
+        localStorage.removeItem("token");
+        window.location.href = "login.html";
+
+        return null;
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.message || "Failed to fetch transaction"
+        );
+    }
+
+    return data;
+}
+
+
+async function updateTransaction(id, transaction) {
+
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(
+        `${API_BASE_URL}/transactions/${id}`,
+        {
+            method: "PUT",
+
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(transaction)
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.message || "Failed to update transaction"
+        );
+    }
+
+    return data;
+}
+
 
 // CATEGORIES - GET ALL
 
