@@ -1,11 +1,14 @@
 package com.finvision.transaction.controller;
 
 import com.finvision.category.entity.CategoryType;
+import com.finvision.transaction.dto.TransactionFilterRequest;
 import com.finvision.transaction.dto.TransactionRequest;
 import com.finvision.transaction.dto.TransactionResponse;
 import com.finvision.transaction.service.TransactionService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -23,25 +26,97 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
+
+
+    // ADD TRANSACTION
+
+
     @PostMapping
     public ResponseEntity<TransactionResponse> addTransaction(
             @Valid @RequestBody TransactionRequest request,
             Authentication authentication) {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(transactionService.addTransaction(
-                        authentication.getName(),
-                        request));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(
+                        transactionService.addTransaction(
+                                authentication.getName(),
+                                request
+                        )
+                );
     }
+
+
+
+    // GET TRANSACTIONS
+    // SEARCH + CATEGORY + DATE + PAGINATION
+
 
     @GetMapping
-    public ResponseEntity<List<TransactionResponse>> getAllTransactions(
+    public ResponseEntity<Page<TransactionResponse>> getTransactions(
+
+            @RequestParam(required = false)
+            String search,
+
+            @RequestParam(required = false)
+            Long categoryId,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(
+                    iso = DateTimeFormat.ISO.DATE
+            )
+            LocalDate fromDate,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(
+                    iso = DateTimeFormat.ISO.DATE
+            )
+            LocalDate toDate,
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size,
+
+            @RequestParam(
+                    defaultValue = "transactionDate"
+            )
+            String sortBy,
+
+            @RequestParam(
+                    defaultValue = "desc"
+            )
+            String direction,
+
             Authentication authentication) {
 
+
+        TransactionFilterRequest filter =
+                new TransactionFilterRequest();
+
+        filter.setSearch(search);
+        filter.setCategoryId(categoryId);
+        filter.setFromDate(fromDate);
+        filter.setToDate(toDate);
+
+
         return ResponseEntity.ok(
-                transactionService.getAllTransactions(
-                        authentication.getName()));
+                transactionService.getTransactions(
+                        authentication.getName(),
+                        page,
+                        size,
+                        sortBy,
+                        direction,
+                        filter
+                )
+        );
     }
+
+
+
+    // GET TRANSACTION BY ID
+
 
     @GetMapping("/{id}")
     public ResponseEntity<TransactionResponse> getTransactionById(
@@ -51,8 +126,15 @@ public class TransactionController {
         return ResponseEntity.ok(
                 transactionService.getTransactionById(
                         id,
-                        authentication.getName()));
+                        authentication.getName()
+                )
+        );
     }
+
+
+
+    // UPDATE TRANSACTION
+
 
     @PutMapping("/{id}")
     public ResponseEntity<TransactionResponse> updateTransaction(
@@ -64,8 +146,15 @@ public class TransactionController {
                 transactionService.updateTransaction(
                         id,
                         authentication.getName(),
-                        request));
+                        request
+                )
+        );
     }
+
+
+
+    // DELETE TRANSACTION
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(
@@ -74,52 +163,88 @@ public class TransactionController {
 
         transactionService.deleteTransaction(
                 id,
-                authentication.getName());
+                authentication.getName()
+        );
 
         return ResponseEntity.noContent().build();
     }
 
+
+
+    // GET BY CATEGORY TYPE
+
+
     @GetMapping("/type/{type}")
-    public ResponseEntity<List<TransactionResponse>> getTransactionsByType(
+    public ResponseEntity<List<TransactionResponse>>
+    getTransactionsByType(
             @PathVariable CategoryType type,
             Authentication authentication) {
 
         return ResponseEntity.ok(
                 transactionService.getTransactionsByType(
                         authentication.getName(),
-                        type));
+                        type
+                )
+        );
     }
 
+
+
+    // GET BY CATEGORY
+
+
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<TransactionResponse>> getTransactionsByCategory(
+    public ResponseEntity<List<TransactionResponse>>
+    getTransactionsByCategory(
             @PathVariable Long categoryId,
             Authentication authentication) {
 
         return ResponseEntity.ok(
                 transactionService.getTransactionsByCategory(
                         authentication.getName(),
-                        categoryId));
+                        categoryId
+                )
+        );
     }
 
+
+
+    // SEARCH
+
+
     @GetMapping("/search")
-    public ResponseEntity<List<TransactionResponse>> searchTransactions(
+    public ResponseEntity<List<TransactionResponse>>
+    searchTransactions(
             @RequestParam String keyword,
             Authentication authentication) {
 
         return ResponseEntity.ok(
                 transactionService.searchTransactions(
                         authentication.getName(),
-                        keyword));
+                        keyword
+                )
+        );
     }
 
+
+
+    // DATE RANGE
+
+
     @GetMapping("/date-range")
-    public ResponseEntity<List<TransactionResponse>> getTransactionsBetweenDates(
+    public ResponseEntity<List<TransactionResponse>>
+    getTransactionsBetweenDates(
+
             @RequestParam
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @DateTimeFormat(
+                    iso = DateTimeFormat.ISO.DATE
+            )
             LocalDate startDate,
 
             @RequestParam
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @DateTimeFormat(
+                    iso = DateTimeFormat.ISO.DATE
+            )
             LocalDate endDate,
 
             Authentication authentication) {
@@ -128,15 +253,36 @@ public class TransactionController {
                 transactionService.getTransactionsBetweenDates(
                         authentication.getName(),
                         startDate,
-                        endDate));
+                        endDate
+                )
+        );
     }
 
+
+
+    // PAGINATED TRANSACTIONS
+
+
     @GetMapping("/page")
-    public ResponseEntity<Page<TransactionResponse>> getTransactions(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "transactionDate") String sortBy,
-            @RequestParam(defaultValue = "desc") String direction,
+    public ResponseEntity<Page<TransactionResponse>>
+    getTransactionsPage(
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size,
+
+            @RequestParam(
+                    defaultValue = "transactionDate"
+            )
+            String sortBy,
+
+            @RequestParam(
+                    defaultValue = "desc"
+            )
+            String direction,
+
             Authentication authentication) {
 
         return ResponseEntity.ok(
@@ -145,6 +291,9 @@ public class TransactionController {
                         page,
                         size,
                         sortBy,
-                        direction));
+                        direction,
+                        new TransactionFilterRequest()
+                )
+        );
     }
 }

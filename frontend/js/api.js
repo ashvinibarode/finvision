@@ -36,10 +36,10 @@ function handleUnauthorized(response) {
 
 
 
-// DASHBOARD
+// CHECK LOGIN
 
 
-async function getDashboardData() {
+function checkAuthentication() {
 
     const token = localStorage.getItem("token");
 
@@ -47,9 +47,22 @@ async function getDashboardData() {
 
         window.location.href = "login.html";
 
-        return null;
+        return false;
     }
 
+    return true;
+}
+
+
+
+// DASHBOARD
+
+
+async function getDashboardData() {
+
+    if (!checkAuthentication()) {
+        return null;
+    }
 
     const response = await fetch(
         `${API_BASE_URL}/dashboard`,
@@ -78,29 +91,95 @@ async function getDashboardData() {
 
 
 
-// TRANSACTIONS - GET PAGINATED
+// TRANSACTIONS - GET PAGINATED + FILTERED
 
 
 async function getTransactions(
     page = 0,
-    size = 10
+    size = 10,
+    filters = {}
 ) {
 
-    const token =
-        localStorage.getItem("token");
-
-
-    if (!token) {
-
-        window.location.href =
-            "login.html";
-
+    if (!checkAuthentication()) {
         return null;
     }
 
 
+    const params =
+        new URLSearchParams();
+
+
+    // Pagination
+
+    params.append(
+        "page",
+        page
+    );
+
+    params.append(
+        "size",
+        size
+    );
+
+
+    // Search
+
+    if (
+        filters.search &&
+        filters.search.trim() !== ""
+    ) {
+
+        params.append(
+            "search",
+            filters.search.trim()
+        );
+    }
+
+
+    // Category
+
+    if (
+        filters.categoryId &&
+        filters.categoryId !== ""
+    ) {
+
+        params.append(
+            "categoryId",
+            filters.categoryId
+        );
+    }
+
+
+    // From Date
+
+    if (
+        filters.fromDate &&
+        filters.fromDate !== ""
+    ) {
+
+        params.append(
+            "fromDate",
+            filters.fromDate
+        );
+    }
+
+
+    // To Date
+
+    if (
+        filters.toDate &&
+        filters.toDate !== ""
+    ) {
+
+        params.append(
+            "toDate",
+            filters.toDate
+        );
+    }
+
+
     const response = await fetch(
-        `${API_BASE_URL}/transactions?page=${page}&size=${size}`,
+        `${API_BASE_URL}/transactions?${params.toString()}`,
         {
             method: "GET",
 
@@ -116,7 +195,13 @@ async function getTransactions(
 
     if (!response.ok) {
 
+        const error =
+            await response.json()
+                .catch(() => null);
+
+
         throw new Error(
+            error?.message ||
             "Failed to fetch transactions"
         );
     }
@@ -126,133 +211,13 @@ async function getTransactions(
 }
 
 
-async function getTransactionById(id) {
-
-    const token = localStorage.getItem("token");
-
-    const response = await fetch(
-        `${API_BASE_URL}/transactions/${id}`,
-        {
-            method: "GET",
-
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            }
-        }
-    );
-
-    if (response.status === 401 || response.status === 403) {
-
-        localStorage.removeItem("token");
-        window.location.href = "login.html";
-
-        return null;
-    }
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(
-            data.message || "Failed to fetch transaction"
-        );
-    }
-
-    return data;
-}
-
-
-async function updateTransaction(id, transaction) {
-
-    const token = localStorage.getItem("token");
-
-    const response = await fetch(
-        `${API_BASE_URL}/transactions/${id}`,
-        {
-            method: "PUT",
-
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify(transaction)
-        }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(
-            data.message || "Failed to update transaction"
-        );
-    }
-
-    return data;
-}
-
-
-// CATEGORIES - GET ALL
-
-async function getCategories() {
-
-    const token = localStorage.getItem("token");
-
-    const response = await fetch(
-        `${API_BASE_URL}/categories`,
-        {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${localStorage.getItem("token")}`,
-                "Content-Type": "application/json"
-            }
-        }
-    );
-
-    if (response.status === 401 || response.status === 403) {
-
-        localStorage.removeItem("token");
-        window.location.href = "login.html";
-
-        return [];
-    }
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch categories");
-    }
-
-    const data = await response.json();
-
-    // Different possible backend response formats
-    if (Array.isArray(data)) {
-        return data;
-    }
-
-    if (Array.isArray(data.content)) {
-        return data.content;
-    }
-
-    if (Array.isArray(data.categories)) {
-        return data.categories;
-    }
-
-    return [];
-}
-
 
 // TRANSACTION - GET BY ID
 
+
 async function getTransaction(id) {
 
-    const token =
-        localStorage.getItem("token");
-
-
-    if (!token) {
-
-        window.location.href =
-            "login.html";
-
+    if (!checkAuthentication()) {
         return null;
     }
 
@@ -274,7 +239,13 @@ async function getTransaction(id) {
 
     if (!response.ok) {
 
+        const error =
+            await response.json()
+                .catch(() => null);
+
+
         throw new Error(
+            error?.message ||
             "Failed to fetch transaction"
         );
     }
@@ -284,64 +255,85 @@ async function getTransaction(id) {
 }
 
 
-//create transaction
-async function createTransaction(transaction) {
 
-    const token = localStorage.getItem("token");
+// CATEGORIES - GET ALL
 
-    if (!token) {
-        window.location.href = "login.html";
-        return;
+
+async function getCategories() {
+
+    if (!checkAuthentication()) {
+        return [];
     }
 
+
     const response = await fetch(
-        `${API_BASE_URL}/transactions`,
+        `${API_BASE_URL}/categories`,
         {
-            method: "POST",
+            method: "GET",
 
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify(transaction)
+            headers: getAuthHeaders()
         }
     );
 
+
+    if (handleUnauthorized(response)) {
+        return [];
+    }
+
+
     if (!response.ok) {
 
-        const errorText = await response.text();
+        const error =
+            await response.json()
+                .catch(() => null);
 
-        console.error(
-            "Transaction API Error:",
-            response.status,
-            errorText
-        );
 
         throw new Error(
-            `Transaction failed (${response.status})`
+            error?.message ||
+            "Failed to fetch categories"
         );
     }
 
-    return await response.json();
+
+    const data =
+        await response.json();
+
+
+    // Backend returns List<CategoryResponse>
+
+    if (Array.isArray(data)) {
+        return data;
+    }
+
+
+    // Fallback if backend returns paginated response
+
+    if (Array.isArray(data.content)) {
+        return data.content;
+    }
+
+
+    // Fallback if backend wraps categories
+
+    if (Array.isArray(data.categories)) {
+        return data.categories;
+    }
+
+
+    return [];
 }
 
+
+
 // TRANSACTION - CREATE / UPDATE
+
 
 async function saveTransaction(
     transaction,
     id = null
 ) {
 
-    const token =
-        localStorage.getItem("token");
-
-
-    if (!token) {
-
-        window.location.href =
-            "login.html";
-
+    if (!checkAuthentication()) {
         return null;
     }
 
@@ -382,7 +374,9 @@ async function saveTransaction(
 
         throw new Error(
             error?.message ||
-            "Unable to save transaction"
+            `Unable to ${
+                id ? "update" : "create"
+            } transaction`
         );
     }
 
@@ -397,15 +391,7 @@ async function saveTransaction(
 
 async function deleteTransactionApi(id) {
 
-    const token =
-        localStorage.getItem("token");
-
-
-    if (!token) {
-
-        window.location.href =
-            "login.html";
-
+    if (!checkAuthentication()) {
         return null;
     }
 

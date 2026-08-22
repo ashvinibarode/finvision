@@ -59,24 +59,43 @@
                         placeholder="Search transactions..."
                 >
 
+
                 <select id="categoryFilter">
-                    <option value="">All Categories</option>
+
+                    <option value="">
+                        All Categories
+                    </option>
+
                 </select>
 
-                <select id="typeFilter">
-                    <option value="">All Types</option>
-                    <option value="INCOME">Income</option>
-                    <option value="EXPENSE">Expense</option>
-                </select>
+
+                <input
+                        type="date"
+                        id="fromDate"
+                        title="From Date"
+                >
+
+
+                <input
+                        type="date"
+                        id="toDate"
+                        title="To Date"
+                >
+
 
                 <button id="filterBtn">
                     Filter
                 </button>
 
 
+                <button
+                        id="clearFilterBtn"
+                        type="button"
+                >
+                    Clear
+                </button>
 
             </div>
-
 
             <!-- Transaction Table -->
 
