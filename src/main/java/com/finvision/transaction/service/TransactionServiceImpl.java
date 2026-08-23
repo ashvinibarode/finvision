@@ -13,6 +13,7 @@ import com.finvision.transaction.service.TransactionService;
 import com.finvision.user.entity.User;
 import com.finvision.user.repository.UserRepository;
 
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -46,8 +47,9 @@ public class TransactionServiceImpl implements TransactionService {
         User user = getUser(email);
 
         Category category =
-                categoryRepository.findById(
-                        request.getCategoryId()
+                categoryRepository.findAccessibleCategory(
+                        request.getCategoryId(),
+                        user
                 ).orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Category not found"
@@ -98,8 +100,9 @@ public class TransactionServiceImpl implements TransactionService {
 
 
         Category category =
-                categoryRepository.findById(
-                        request.getCategoryId()
+                categoryRepository.findAccessibleCategory(
+                        request.getCategoryId(),
+                        user
                 ).orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Category not found"
@@ -269,8 +272,6 @@ public class TransactionServiceImpl implements TransactionService {
 
 
     // DATE RANGE
-
-
     @Override
     public List<TransactionResponse> getTransactionsBetweenDates(
             String email,
@@ -278,6 +279,15 @@ public class TransactionServiceImpl implements TransactionService {
             LocalDate endDate) {
 
         User user = getUser(email);
+
+        if (startDate != null &&
+                endDate != null &&
+                startDate.isAfter(endDate)) {
+
+            throw new IllegalArgumentException(
+                    "Start date cannot be after end date"
+            );
+        }
 
         return transactionRepository
                 .findByUserAndTransactionDateBetween(
@@ -289,6 +299,8 @@ public class TransactionServiceImpl implements TransactionService {
                 .map(this::mapToResponse)
                 .toList();
     }
+
+
 
 
 
@@ -305,6 +317,17 @@ public class TransactionServiceImpl implements TransactionService {
             TransactionFilterRequest filter) {
 
         User user = getUser(email);
+
+        // Validate date range
+        if (filter != null &&
+                filter.getFromDate() != null &&
+                filter.getToDate() != null &&
+                filter.getFromDate().isAfter(filter.getToDate())) {
+
+            throw new IllegalArgumentException(
+                    "From date cannot be after to date"
+            );
+        }
 
 
         // Prevent invalid page/size values

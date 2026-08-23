@@ -1,12 +1,14 @@
 let currentPage = 0;
+
 const pageSize = 10;
 
 let categories = [];
+
 let currentFilters = {};
 
 
 
-// Page Load
+// PAGE LOAD
 
 
 document.addEventListener(
@@ -22,22 +24,28 @@ document.addEventListener(
 
 
 
-// Load Categories
+// LOAD CATEGORIES
 
 
 async function loadCategories() {
 
     try {
 
-        const data = await getCategories();
+        const data =
+            await getCategories();
+
 
         if (!data) {
             return;
         }
 
+
         categories = data;
 
-        populateCategoryFilter(data);
+
+        populateCategoryFilter(
+            data
+        );
 
     } catch (error) {
 
@@ -45,47 +53,64 @@ async function loadCategories() {
             "Category loading error:",
             error
         );
+
     }
 }
 
 
 
-// Populate Category Filter
+// POPULATE CATEGORY FILTER
 
 
-function populateCategoryFilter(categories) {
+function populateCategoryFilter(
+    categories
+) {
 
     const select =
         document.getElementById(
             "categoryFilter"
         );
 
+
     if (!select) {
         return;
     }
 
+
     select.innerHTML =
-        `<option value="">All Categories</option>`;
+        `<option value="">
+            All Categories
+        </option>`;
 
 
-    categories.forEach(category => {
+    categories.forEach(
+        category => {
 
-        const option =
-            document.createElement("option");
+            const option =
+                document.createElement(
+                    "option"
+                );
 
-        option.value = category.id;
 
-        option.textContent =
-            category.name;
+            option.value =
+                category.id;
 
-        select.appendChild(option);
 
-    });
+            option.textContent =
+                category.name;
+
+
+            select.appendChild(
+                option
+            );
+
+        }
+    );
 }
 
 
 
-// Load Transactions
+// LOAD TRANSACTIONS
 
 
 async function loadTransactions() {
@@ -116,12 +141,18 @@ async function loadTransactions() {
             "Transaction loading error:",
             error
         );
+
+
+        showTransactionMessage(
+            error.message ||
+            "Unable to load transactions"
+        );
     }
 }
 
 
 
-// Render Transactions
+// RENDER TRANSACTIONS
 
 
 function renderTransactions(data) {
@@ -140,9 +171,6 @@ function renderTransactions(data) {
     tableBody.innerHTML = "";
 
 
-    // Page object ka actual transaction data
-    // data.content ke andar hai
-
     if (
         !data.content ||
         data.content.length === 0
@@ -160,59 +188,69 @@ function renderTransactions(data) {
     }
 
 
-    data.content.forEach(transaction => {
+    data.content.forEach(
+        transaction => {
 
-        const row =
-            document.createElement("tr");
-
-
-        row.innerHTML = `
-            <td>
-                ${transaction.title}
-            </td>
-
-            <td>
-                ${transaction.category}
-            </td>
-
-            <td>
-                ${formatCurrency(
-                    transaction.amount
-                )}
-            </td>
-
-            <td>
-                ${transaction.transactionDate}
-            </td>
-
-            <td>
-
-                <button
-                    onclick="editTransaction(
-                        ${transaction.id}
-                    )">
-                    Edit
-                </button>
-
-                <button
-                    onclick="deleteTransaction(
-                        ${transaction.id}
-                    )">
-                    Delete
-                </button>
-
-            </td>
-        `;
+            const row =
+                document.createElement(
+                    "tr"
+                );
 
 
-        tableBody.appendChild(row);
+            row.innerHTML = `
+                <td>
+                    ${escapeHtml(
+                        transaction.title
+                    )}
+                </td>
 
-    });
+                <td>
+                    ${escapeHtml(
+                        transaction.category || "-"
+                    )}
+                </td>
+
+                <td>
+                    ${formatCurrency(
+                        transaction.amount
+                    )}
+                </td>
+
+                <td>
+                    ${transaction.transactionDate}
+                </td>
+
+                <td>
+
+                    <button
+                        onclick="editTransaction(
+                            ${transaction.id}
+                        )">
+                        Edit
+                    </button>
+
+                    <button
+                        onclick="deleteTransaction(
+                            ${transaction.id}
+                        )">
+                        Delete
+                    </button>
+
+                </td>
+            `;
+
+
+            tableBody.appendChild(
+                row
+            );
+
+        }
+    );
 }
 
 
 
-// Pagination
+// PAGINATION
 
 
 function updatePagination(data) {
@@ -225,12 +263,18 @@ function updatePagination(data) {
 
     if (pageInfo) {
 
+        const totalPages =
+            data.totalPages;
+
+
         pageInfo.textContent =
-            `Page ${
-                data.number + 1
-            } of ${
-                data.totalPages
-            }`;
+            totalPages === 0
+                ? "No pages"
+                : `Page ${
+                    data.number + 1
+                } of ${
+                    totalPages
+                }`;
     }
 
 
@@ -249,20 +293,22 @@ function updatePagination(data) {
     if (previousBtn) {
 
         previousBtn.disabled =
-            data.first;
+            data.first ||
+            data.totalPages === 0;
     }
 
 
     if (nextBtn) {
 
         nextBtn.disabled =
-            data.last;
+            data.last ||
+            data.totalPages === 0;
     }
 }
 
 
 
-// Previous Page
+// PREVIOUS PAGE
 
 
 const previousBtn =
@@ -282,6 +328,7 @@ if (previousBtn) {
                 currentPage--;
 
                 loadTransactions();
+
             }
 
         }
@@ -290,7 +337,7 @@ if (previousBtn) {
 
 
 
-// Next Page
+// NEXT PAGE
 
 
 const nextBtn =
@@ -315,7 +362,7 @@ if (nextBtn) {
 
 
 
-// Apply Filters
+// APPLY FILTERS
 
 
 const filterBtn =
@@ -354,34 +401,85 @@ if (filterBtn) {
                 );
 
 
+            const search =
+                searchInput
+                    ? searchInput.value.trim()
+                    : "";
+
+
+            const categoryId =
+                categoryFilter
+                    ? categoryFilter.value
+                    : "";
+
+
+            const fromDateValue =
+                fromDate
+                    ? fromDate.value
+                    : "";
+
+
+            const toDateValue =
+                toDate
+                    ? toDate.value
+                    : "";
+
+
+
+            // SEARCH VALIDATION
+
+
+            if (search.length > 100) {
+
+                alert(
+                    "Search cannot exceed 100 characters"
+                );
+
+                return;
+            }
+
+
+
+            // DATE VALIDATION
+
+
+            if (
+                fromDateValue &&
+                toDateValue &&
+                fromDateValue > toDateValue
+            ) {
+
+                alert(
+                    "From date cannot be after To date"
+                );
+
+                return;
+            }
+
+
+
+            // SET FILTERS
+
+
             currentFilters = {
 
-                search:
-                    searchInput
-                        ? searchInput.value.trim()
-                        : "",
+                search: search,
 
-                categoryId:
-                    categoryFilter
-                        ? categoryFilter.value
-                        : "",
+                categoryId: categoryId,
 
                 fromDate:
-                    fromDate
-                        ? fromDate.value
-                        : "",
+                    fromDateValue,
 
                 toDate:
-                    toDate
-                        ? toDate.value
-                        : ""
+                    toDateValue
             };
 
 
-            // Filter change hone par
-            // first page se start karo
+            // Always start from
+            // first page after filtering
 
             currentPage = 0;
+
 
             loadTransactions();
 
@@ -391,7 +489,7 @@ if (filterBtn) {
 
 
 
-// Clear Filters
+// CLEAR FILTERS
 
 
 const clearFilterBtn =
@@ -431,28 +529,41 @@ if (clearFilterBtn) {
 
 
             if (searchInput) {
-                searchInput.value = "";
+
+                searchInput.value =
+                    "";
+
             }
 
 
             if (categoryFilter) {
-                categoryFilter.value = "";
+
+                categoryFilter.value =
+                    "";
+
             }
 
 
             if (fromDate) {
-                fromDate.value = "";
+
+                fromDate.value =
+                    "";
+
             }
 
 
             if (toDate) {
-                toDate.value = "";
+
+                toDate.value =
+                    "";
+
             }
 
 
             currentFilters = {};
 
             currentPage = 0;
+
 
             loadTransactions();
 
@@ -462,10 +573,12 @@ if (clearFilterBtn) {
 
 
 
-// Delete Transaction
+// DELETE TRANSACTION
 
 
-async function deleteTransaction(id) {
+async function deleteTransaction(
+    id
+) {
 
     const confirmed =
         confirm(
@@ -479,7 +592,18 @@ async function deleteTransaction(id) {
 
 
     const token =
-        localStorage.getItem("token");
+        localStorage.getItem(
+            "token"
+        );
+
+
+    if (!token) {
+
+        window.location.href =
+            "login.html";
+
+        return;
+    }
 
 
     try {
@@ -507,8 +631,10 @@ async function deleteTransaction(id) {
                 "token"
             );
 
+
             window.location.href =
                 "login.html";
+
 
             return;
         }
@@ -522,6 +648,22 @@ async function deleteTransaction(id) {
         }
 
 
+        /*
+         * Delete ke baad agar current page
+         * empty ho jaye to previous page par
+         * move karenge.
+         */
+
+        if (
+            currentPage > 0 &&
+            dataIsLastPageAfterDelete()
+        ) {
+
+            currentPage--;
+
+        }
+
+
         await loadTransactions();
 
 
@@ -532,7 +674,9 @@ async function deleteTransaction(id) {
             error
         );
 
+
         alert(
+            error.message ||
             "Unable to delete transaction"
         );
     }
@@ -540,7 +684,7 @@ async function deleteTransaction(id) {
 
 
 
-// Edit Transaction
+// EDIT TRANSACTION
 
 
 function editTransaction(id) {
@@ -551,7 +695,7 @@ function editTransaction(id) {
 
 
 
-// Add Transaction
+// ADD TRANSACTION
 
 
 const addTransactionBtn =
@@ -575,7 +719,7 @@ if (addTransactionBtn) {
 
 
 
-// Currency
+// CURRENCY
 
 
 function formatCurrency(amount) {
@@ -587,4 +731,67 @@ function formatCurrency(amount) {
             currency: "INR"
         }
     ).format(amount);
+}
+
+
+
+// HTML ESCAPE
+
+
+function escapeHtml(value) {
+
+    if (value === null ||
+        value === undefined) {
+
+        return "";
+    }
+
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+
+// TRANSACTION MESSAGE
+
+
+function showTransactionMessage(
+    message
+) {
+
+    const tableBody =
+        document.getElementById(
+            "transactionTableBody"
+        );
+
+
+    if (!tableBody) {
+        return;
+    }
+
+
+    tableBody.innerHTML = `
+        <tr>
+            <td colspan="5">
+                ${escapeHtml(message)}
+            </td>
+        </tr>
+    `;
+}
+
+
+
+// DELETE PAGE HELPER
+
+
+function dataIsLastPageAfterDelete() {
+
+
+
+    return false;
 }

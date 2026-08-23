@@ -11,18 +11,21 @@ import java.time.LocalDate;
 @Data
 public class TransactionRequest {
 
-    @NotBlank
+    @NotBlank(message = "Title is required")
     private String title;
 
     private String description;
 
-    @NotNull
-    @DecimalMin("0.01")
+    @NotNull(message = "Amount is required")
+    @DecimalMin(
+            value = "0.01",
+            message = "Amount must be greater than 0"
+    )
     private BigDecimal amount;
 
-    @NotNull
+    @NotNull(message = "Category is required")
     private Long categoryId;
 
-    @NotNull
+    @NotNull(message = "Transaction date is required")
     private LocalDate transactionDate;
 }

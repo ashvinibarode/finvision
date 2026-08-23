@@ -81,8 +81,12 @@ async function loadTransactionForEdit(id) {
         );
 
 
+        // IMPORTANT:
+        // api.js contains getTransaction(),
+        // not getTransactionById()
+
         const transaction =
-            await getTransactionById(id);
+            await getTransaction(id);
 
 
         if (!transaction) {
@@ -176,6 +180,11 @@ function populateCategoryDropdown() {
         );
 
 
+    if (!categorySelect) {
+        return;
+    }
+
+
     categorySelect.innerHTML = `
         <option value="">
             Select Category
@@ -218,6 +227,11 @@ function setDefaultDate() {
         );
 
 
+    if (!dateInput) {
+        return;
+    }
+
+
     const today =
         new Date()
             .toISOString()
@@ -249,7 +263,9 @@ async function handleTransactionSubmit(event) {
     event.preventDefault();
 
 
+
     // GET FORM VALUES
+
 
     const title =
         document
@@ -265,20 +281,25 @@ async function handleTransactionSubmit(event) {
             .trim();
 
 
+    const amountValue =
+        document
+            .getElementById("amount")
+            .value
+            .trim();
+
+
     const amount =
-        Number(
-            document
-                .getElementById("amount")
-                .value
-        );
+        Number(amountValue);
+
+
+    const categoryValue =
+        document
+            .getElementById("category")
+            .value;
 
 
     const categoryId =
-        Number(
-            document
-                .getElementById("category")
-                .value
-        );
+        Number(categoryValue);
 
 
     const transactionDate =
@@ -289,7 +310,18 @@ async function handleTransactionSubmit(event) {
             .value;
 
 
+    const submitButton =
+        document.getElementById(
+            "submitBtn"
+        );
+
+
+
     // FRONTEND VALIDATION
+
+
+
+    // 1. TITLE VALIDATION
 
     if (!title) {
 
@@ -302,7 +334,59 @@ async function handleTransactionSubmit(event) {
     }
 
 
-    if (!amount || amount <= 0) {
+    if (title.length > 100) {
+
+        showMessage(
+            "Transaction title cannot exceed 100 characters",
+            true
+        );
+
+        return;
+    }
+
+
+    // 2. DESCRIPTION VALIDATION
+
+    if (description.length > 500) {
+
+        showMessage(
+            "Description cannot exceed 500 characters",
+            true
+        );
+
+        return;
+    }
+
+
+    // 3. AMOUNT REQUIRED
+
+    if (!amountValue) {
+
+        showMessage(
+            "Transaction amount is required",
+            true
+        );
+
+        return;
+    }
+
+
+    // 4. AMOUNT NUMBER VALIDATION
+
+    if (!Number.isFinite(amount)) {
+
+        showMessage(
+            "Please enter a valid amount",
+            true
+        );
+
+        return;
+    }
+
+
+    // 5. AMOUNT POSITIVE VALIDATION
+
+    if (amount <= 0) {
 
         showMessage(
             "Amount must be greater than 0",
@@ -313,7 +397,22 @@ async function handleTransactionSubmit(event) {
     }
 
 
-    if (!categoryId) {
+    // 6. AMOUNT DECIMAL VALIDATION
+
+    if (!/^\d+(\.\d{1,2})?$/.test(amountValue)) {
+
+        showMessage(
+            "Amount can have maximum 2 decimal places",
+            true
+        );
+
+        return;
+    }
+
+
+    // 7. CATEGORY VALIDATION
+
+    if (!categoryValue || !categoryId) {
 
         showMessage(
             "Please select a category",
@@ -323,6 +422,8 @@ async function handleTransactionSubmit(event) {
         return;
     }
 
+
+    // 8. DATE REQUIRED VALIDATION
 
     if (!transactionDate) {
 
@@ -335,7 +436,32 @@ async function handleTransactionSubmit(event) {
     }
 
 
+    // 9. DATE FORMAT VALIDATION
+
+    const selectedDate =
+        new Date(
+            transactionDate + "T00:00:00"
+        );
+
+
+    if (
+        Number.isNaN(
+            selectedDate.getTime()
+        )
+    ) {
+
+        showMessage(
+            "Please select a valid transaction date",
+            true
+        );
+
+        return;
+    }
+
+
+
     // REQUEST OBJECT
+
 
     const transaction = {
 
@@ -353,9 +479,18 @@ async function handleTransactionSubmit(event) {
 
     try {
 
-        // ========================
+        // Disable button
+        // Prevent duplicate submission
+
+        if (submitButton) {
+
+            submitButton.disabled = true;
+        }
+
+
+
         // EDIT MODE
-        // ========================
+
 
         if (editingTransactionId) {
 
@@ -364,9 +499,13 @@ async function handleTransactionSubmit(event) {
             );
 
 
-            await updateTransaction(
-                editingTransactionId,
-                transaction
+            // IMPORTANT:
+            // saveTransaction(transaction, id)
+            // performs PUT request
+
+            await saveTransaction(
+                transaction,
+                editingTransactionId
             );
 
 
@@ -374,12 +513,12 @@ async function handleTransactionSubmit(event) {
                 "Transaction updated successfully"
             );
 
-
         }
 
-        // ========================
+
+
         // CREATE MODE
-        // ========================
+
 
         else {
 
@@ -388,7 +527,11 @@ async function handleTransactionSubmit(event) {
             );
 
 
-            await createTransaction(
+            // IMPORTANT:
+            // saveTransaction(transaction)
+            // performs POST request
+
+            await saveTransaction(
                 transaction
             );
 
@@ -399,9 +542,9 @@ async function handleTransactionSubmit(event) {
         }
 
 
-        // ========================
+
         // REDIRECT
-        // ========================
+
 
         setTimeout(() => {
 
@@ -424,6 +567,15 @@ async function handleTransactionSubmit(event) {
             "Unable to save transaction",
             true
         );
+
+
+        // Re-enable button
+        // if API request failed
+
+        if (submitButton) {
+
+            submitButton.disabled = false;
+        }
     }
 }
 
@@ -460,16 +612,38 @@ function showMessage(
         message
             ? "block"
             : "none";
+
+
+    // Error/success state
+
+    if (isError) {
+
+        messageElement.classList.add(
+            "error-message"
+        );
+
+    } else {
+
+        messageElement.classList.remove(
+            "error-message"
+        );
+    }
 }
 
 
 
 // CANCEL BUTTON
-// ===============================
 
-document
-    .getElementById("cancelBtn")
-    .addEventListener(
+
+const cancelBtn =
+    document.getElementById(
+        "cancelBtn"
+    );
+
+
+if (cancelBtn) {
+
+    cancelBtn.addEventListener(
         "click",
         () => {
 
@@ -478,10 +652,13 @@ document
 
         }
     );
+}
 
 
-// ===============================
+
 // LOGOUT
+
+
 const logoutBtn =
     document.getElementById(
         "logoutBtn"
