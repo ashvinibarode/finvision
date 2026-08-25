@@ -17,6 +17,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 
+
 public interface TransactionRepository
             extends JpaRepository<Transaction, Long>,
             JpaSpecificationExecutor<Transaction> {
@@ -80,6 +81,21 @@ public interface TransactionRepository
             @Param("month") String month
     );
 
+
+    @Query("""
+        SELECT COALESCE(SUM(t.amount), 0)
+        FROM Transaction t
+        WHERE t.user = :user
+          AND t.category = :category
+          AND t.transactionDate >= :startDate
+          AND t.transactionDate < :endDate
+        """)
+    BigDecimal calculateCategorySpending(
+            @Param("user") User user,
+            @Param("category") Category category,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 
     // Dashboard Analytics
 

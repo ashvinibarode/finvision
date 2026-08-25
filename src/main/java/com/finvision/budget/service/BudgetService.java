@@ -2,25 +2,17 @@ package com.finvision.budget.service;
 
 import com.finvision.budget.dto.BudgetRequest;
 import com.finvision.budget.dto.BudgetResponse;
-import com.finvision.budget.dto.BudgetSummaryResponse;
-
+import com.finvision.budget.dto.BudgetAnalyticsResponse;
 import java.util.List;
 
 public interface BudgetService {
 
     BudgetResponse createBudget(
-            String email,
-            BudgetRequest request
+            BudgetRequest request,
+            String email
     );
 
-    BudgetResponse updateBudget(
-            Long id,
-            String email,
-            BudgetRequest request
-    );
-
-    void deleteBudget(
-            Long id,
+    List<BudgetResponse> getAllBudgets(
             String email
     );
 
@@ -29,11 +21,19 @@ public interface BudgetService {
             String email
     );
 
-    List<BudgetResponse> getAllBudgets(
+    BudgetResponse updateBudget(
+            Long id,
+            BudgetRequest request,
             String email
     );
-    BudgetSummaryResponse getBudgetSummary(
+
+    BudgetAnalyticsResponse getBudgetAnalytics(
             Long budgetId,
+            String email
+    );
+
+    void deleteBudget(
+            Long id,
             String email
     );
 }

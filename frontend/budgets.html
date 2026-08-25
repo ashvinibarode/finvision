@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FinVision - Budgets</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <aside class="sidebar">
+
+        <h2>FinVision</h2>
+
+        <nav>
+            <a href="index.html">Dashboard</a>
+            <a href="transactions.html">Transactions</a>
+            <a href="budgets.html" class="active">Budgets</a>
+            <a href="#">Reports</a>
+            <a href="#">Profile</a>
+        </nav>
+
+        <button id="logoutBtn">
+            Logout
+        </button>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+                <h1>Budget Management</h1>
+
+                <p>
+                    Track your monthly spending limits
+                </p>
+            </div>
+
+            <button id="addBudgetBtn">
+                Add Budget
+            </button>
+
+        </header>
+
+
+        <!-- Budget Cards -->
+
+        <section
+                id="budgetContainer"
+                class="summary-cards">
+        </section>
+
+
+        <!-- Budget Table -->
+
+        <section class="transactions-card">
+
+            <div class="section-header">
+
+                <h2>
+                    Monthly Budgets
+                </h2>
+
+            </div>
+
+
+            <table>
+
+                <thead>
+
+                <tr>
+                    <th>Category</th>
+                    <th>Limit</th>
+                    <th>Spent</th>
+                    <th>Remaining</th>
+                    <th>Progress</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+
+                </thead>
+
+                <tbody id="budgetTableBody">
+                </tbody>
+
+            </table>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script src="js/api.js"></script>
+<script src="js/budgets.js"></script>
+
+</body>
+
+</html>

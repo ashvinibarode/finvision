@@ -6,21 +6,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
-@Table(
-        name = "budgets",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        columnNames = {
-                                "user_id",
-                                "category_id",
-                                "month"
-                        }
-                )
-        }
-)
+@Table(name = "budgets")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -32,11 +21,11 @@ public class Budget {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, precision = 15, scale = 2)
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
     @Column(nullable = false)
-    private String month;
+    private LocalDate month;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
@@ -45,19 +34,4 @@ public class Budget {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

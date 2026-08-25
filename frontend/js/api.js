@@ -427,3 +427,50 @@ async function deleteTransactionApi(id) {
 
     return true;
 }
+
+//budget
+
+async function getBudgets() {
+
+    const token =
+        localStorage.getItem("token");
+
+    const response =
+        await fetch(
+            `${API_BASE_URL}/budgets`,
+            {
+                method: "GET",
+
+                headers: {
+                    "Authorization":
+                        `Bearer ${token}`,
+
+                    "Content-Type":
+                        "application/json"
+                }
+            }
+        );
+
+
+    if (response.status === 401 ||
+        response.status === 403) {
+
+        localStorage.removeItem("token");
+
+        window.location.href =
+            "login.html";
+
+        return null;
+    }
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Failed to fetch budgets"
+        );
+    }
+
+
+    return await response.json();
+}
