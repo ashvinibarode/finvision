@@ -432,45 +432,181 @@ async function deleteTransactionApi(id) {
 
 async function getBudgets() {
 
-    const token =
-        localStorage.getItem("token");
-
-    const response =
-        await fetch(
-            `${API_BASE_URL}/budgets`,
-            {
-                method: "GET",
-
-                headers: {
-                    "Authorization":
-                        `Bearer ${token}`,
-
-                    "Content-Type":
-                        "application/json"
-                }
-            }
-        );
+    if (!checkAuthentication()) {
+        return null;
+    }
 
 
-    if (response.status === 401 ||
-        response.status === 403) {
+    const response = await fetch(
+        `${API_BASE_URL}/budgets`,
+        {
+            method: "GET",
+            headers: getAuthHeaders()
+        }
+    );
 
-        localStorage.removeItem("token");
 
-        window.location.href =
-            "login.html";
-
+    if (handleUnauthorized(response)) {
         return null;
     }
 
 
     if (!response.ok) {
 
+        const error =
+            await response.json()
+                .catch(() => null);
+
         throw new Error(
+            error?.message ||
             "Failed to fetch budgets"
         );
     }
 
 
     return await response.json();
+}
+
+
+
+
+//analytics
+
+async function getBudgetAnalytics(id) {
+
+    if (!checkAuthentication()) {
+        return null;
+    }
+
+
+    const response = await fetch(
+        `${API_BASE_URL}/budgets/${id}/analytics`,
+        {
+            method: "GET",
+            headers: getAuthHeaders()
+        }
+    );
+
+
+    if (handleUnauthorized(response)) {
+        return null;
+    }
+
+
+    if (!response.ok) {
+
+        const error =
+            await response.json()
+                .catch(() => null);
+
+        throw new Error(
+            error?.message ||
+            "Failed to fetch budget analytics"
+        );
+    }
+
+
+    return await response.json();
+}
+
+
+// =====================================================
+// BUDGET - CREATE / UPDATE
+// =====================================================
+
+async function saveBudget(
+    budget,
+    id = null
+) {
+
+    if (!checkAuthentication()) {
+        return null;
+    }
+
+
+    const url = id
+        ? `${API_BASE_URL}/budgets/${id}`
+        : `${API_BASE_URL}/budgets`;
+
+
+    const method = id
+        ? "PUT"
+        : "POST";
+
+
+    const response = await fetch(
+        url,
+        {
+            method: method,
+
+            headers: getAuthHeaders(),
+
+            body: JSON.stringify(budget)
+        }
+    );
+
+
+    if (handleUnauthorized(response)) {
+        return null;
+    }
+
+
+    if (!response.ok) {
+
+        const error =
+            await response.json()
+                .catch(() => null);
+
+        throw new Error(
+            error?.message ||
+            `Unable to ${
+                id ? "update" : "create"
+            } budget`
+        );
+    }
+
+
+    return await response.json();
+}
+
+
+
+// BUDGET - DELETE
+
+
+async function deleteBudgetApi(id) {
+
+    if (!checkAuthentication()) {
+        return null;
+    }
+
+
+    const response = await fetch(
+        `${API_BASE_URL}/budgets/${id}`,
+        {
+            method: "DELETE",
+            headers: getAuthHeaders()
+        }
+    );
+
+
+    if (handleUnauthorized(response)) {
+        return null;
+    }
+
+
+    if (!response.ok) {
+
+        const error =
+            await response.json()
+                .catch(() => null);
+
+        throw new Error(
+            error?.message ||
+            "Failed to delete budget"
+        );
+    }
+
+
+    return true;
 }

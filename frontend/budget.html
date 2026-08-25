@@ -21,7 +21,7 @@
         <nav>
             <a href="index.html">Dashboard</a>
             <a href="transactions.html">Transactions</a>
-            <a href="budgets.html" class="active">Budgets</a>
+            <a href="budget.html" class="active">Budgets</a>
             <a href="#">Reports</a>
             <a href="#">Profile</a>
         </nav>
@@ -38,7 +38,7 @@
         <header class="topbar">
 
             <div>
-                <h1>Budget Management</h1>
+                <h1>Budgets</h1>
 
                 <p>
                     Track your monthly spending limits
@@ -52,49 +52,15 @@
         </header>
 
 
-        <!-- Budget Cards -->
+        <section class="budget-grid"
+                 id="budgetContainer">
 
-        <section
-                id="budgetContainer"
-                class="summary-cards">
-        </section>
-
-
-        <!-- Budget Table -->
-
-        <section class="transactions-card">
-
-            <div class="section-header">
-
-                <h2>
-                    Monthly Budgets
-                </h2>
-
-            </div>
-
-
-            <table>
-
-                <thead>
-
-                <tr>
-                    <th>Category</th>
-                    <th>Limit</th>
-                    <th>Spent</th>
-                    <th>Remaining</th>
-                    <th>Progress</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-
-                </thead>
-
-                <tbody id="budgetTableBody">
-                </tbody>
-
-            </table>
+            <!-- Budget cards will be loaded here -->
 
         </section>
+
+
+        <p id="budgetMessage"></p>
 
     </main>
 
@@ -102,7 +68,7 @@
 
 
 <script src="js/api.js"></script>
-<script src="js/budgets.js"></script>
+<script src="js/budget.js"></script>
 
 </body>
 
