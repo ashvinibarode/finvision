@@ -271,23 +271,6 @@ async function deleteBudget(id) {
     }
 }
 
-
-
-// EDIT BUDGET
-
-
-function editBudget(id) {
-
-
-
-    console.log(
-        "Edit budget:",
-        id
-    );
-}
-
-
-
 // FORMAT AMOUNT
 
 
@@ -353,3 +336,36 @@ function showBudgetMessage(
             ? "error-message"
             : "success-message";
 }
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const addBudgetBtn =
+            document.getElementById(
+                "addBudgetBtn"
+            );
+
+        console.log(
+            "Add Budget button:",
+            addBudgetBtn
+        );
+
+        if (addBudgetBtn) {
+
+            addBudgetBtn.addEventListener(
+                "click",
+                function () {
+
+                    console.log(
+                        "Add Budget clicked"
+                    );
+
+                    window.location.href =
+                        "./budget-form.html";
+                }
+            );
+        }
+    }
+);

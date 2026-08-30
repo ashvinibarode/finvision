@@ -510,9 +510,8 @@ async function getBudgetAnalytics(id) {
 }
 
 
-// =====================================================
+
 // BUDGET - CREATE / UPDATE
-// =====================================================
 
 async function saveBudget(
     budget,
@@ -562,6 +561,44 @@ async function saveBudget(
             `Unable to ${
                 id ? "update" : "create"
             } budget`
+        );
+    }
+
+
+    return await response.json();
+}
+
+
+async function getBudgetById(id) {
+
+    if (!checkAuthentication()) {
+        return null;
+    }
+
+
+    const response = await fetch(
+        `${API_BASE_URL}/budgets/${id}`,
+        {
+            method: "GET",
+            headers: getAuthHeaders()
+        }
+    );
+
+
+    if (handleUnauthorized(response)) {
+        return null;
+    }
+
+
+    if (!response.ok) {
+
+        const error =
+            await response.json()
+                .catch(() => null);
+
+        throw new Error(
+            error?.message ||
+            "Failed to fetch budget"
         );
     }
 
