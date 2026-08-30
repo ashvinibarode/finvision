@@ -901,3 +901,197 @@ tr:hover td {
     }
 
 }
+
+
+/* =========================
+   REPORT FILTER
+========================= */
+
+.report-filter {
+    display: flex;
+
+    align-items: flex-end;
+
+    gap: 15px;
+
+    flex-wrap: wrap;
+
+    background: var(--dark);
+
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
+
+    padding: 24px;
+
+    margin-top: 18px;
+}
+
+.report-filter .form-group {
+    margin-bottom: 0;
+
+    min-width: 200px;
+}
+
+.report-filter button {
+    white-space: nowrap;
+}
+
+
+/* =========================
+   REPORT SUMMARY
+========================= */
+
+.report-summary {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 18px;
+
+    margin-top: 18px;
+}
+
+.report-summary-card {
+    background: var(--dark);
+
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
+
+    padding: 23px;
+
+    transition: 0.2s ease;
+}
+
+.report-summary-card:hover {
+    border-color: #4a4a4a;
+
+    transform: translateY(-2px);
+}
+
+.report-summary-card span {
+    display: block;
+
+    color: var(--muted);
+
+    font-size: 13px;
+
+    margin-bottom: 15px;
+}
+
+.report-summary-card h2 {
+    color: var(--white);
+
+    font-size: 25px;
+
+    margin: 0;
+}
+
+
+/* =========================
+   REPORT PERIOD
+========================= */
+
+.report-period {
+    background: var(--dark);
+
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
+
+    padding: 24px;
+
+    margin-top: 18px;
+}
+
+.report-period h3 {
+    color: var(--white);
+
+    font-size: 16px;
+
+    margin-bottom: 10px;
+}
+
+.report-period p {
+    color: var(--muted);
+
+    font-size: 13px;
+
+    margin: 0;
+}
+
+
+/* =========================
+   REPORT MESSAGE
+========================= */
+
+#reportMessage {
+    margin-top: 15px;
+
+    font-size: 13px;
+}
+
+#reportMessage.success-message {
+    color: var(--soft);
+}
+
+#reportMessage.error-message {
+    color: #ff7777;
+}
+
+
+/* =========================
+   REPORT MOBILE
+========================= */
+
+@media (max-width: 900px) {
+
+    .report-summary {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .report-filter {
+        flex-direction: column;
+
+        align-items: stretch;
+
+        padding: 18px;
+    }
+
+    .report-filter .form-group {
+        width: 100%;
+
+        min-width: 0;
+    }
+
+    .report-filter button {
+        width: 100%;
+    }
+
+    .report-summary {
+        grid-template-columns: 1fr;
+
+        gap: 15px;
+    }
+
+    .report-summary-card {
+        padding: 18px;
+    }
+
+    .report-summary-card h2 {
+        font-size: 22px;
+    }
+
+    .report-period {
+        padding: 18px;
+    }
+
+}

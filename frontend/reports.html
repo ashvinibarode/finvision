@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FinVision - Reports</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <aside class="sidebar">
+
+        <h2>FinVision</h2>
+
+        <nav>
+            <a href="index.html">Dashboard</a>
+            <a href="transactions.html">Transactions</a>
+            <a href="budget.html">Budgets</a>
+            <a href="reports.html" class="active">Reports</a>
+            <a href="#">Profile</a>
+        </nav>
+
+        <button id="logoutBtn">
+            Logout
+        </button>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+                <h1>Financial Reports</h1>
+                <p>Analyze your finances for a selected period.</p>
+            </div>
+
+        </header>
+
+
+        <section class="report-filter">
+
+            <div class="form-group">
+
+                <label for="startDate">
+                    Start Date
+                </label>
+
+                <input
+                        type="date"
+                        id="startDate"
+                        required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="endDate">
+                    End Date
+                </label>
+
+                <input
+                        type="date"
+                        id="endDate"
+                        required
+                >
+
+            </div>
+
+
+            <button id="generateReportBtn">
+                Generate Report
+            </button>
+
+            <button id="downloadPdfBtn">
+                Download PDF
+            </button>
+
+        </section>
+
+
+        <p id="reportMessage"></p>
+
+
+        <section
+                class="report-summary"
+                id="reportSummary"
+        >
+
+            <div class="summary-card">
+                <span>Total Income</span>
+                <h2 id="totalIncome">₹0.00</h2>
+            </div>
+
+            <div class="summary-card">
+                <span>Total Expense</span>
+                <h2 id="totalExpense">₹0.00</h2>
+            </div>
+
+            <div class="summary-card">
+                <span>Balance</span>
+                <h2 id="balance">₹0.00</h2>
+            </div>
+
+            <div class="summary-card">
+                <span>Transactions</span>
+                <h2 id="totalTransactions">0</h2>
+            </div>
+
+        </section>
+
+
+        <section class="report-period">
+
+            <h3>Report Period</h3>
+
+            <p id="reportPeriod">
+                Select a date range to generate report.
+            </p>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script src="js/api.js"></script>
+<script src="js/reports.js"></script>
+
+</body>
+
+</html>

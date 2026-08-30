@@ -647,3 +647,102 @@ async function deleteBudgetApi(id) {
 
     return true;
 }
+//report
+async function getReport(
+    startDate,
+    endDate
+) {
+
+    const token =
+        localStorage.getItem("token");
+
+    const params = new URLSearchParams({
+        startDate: startDate,
+        endDate: endDate
+    });
+
+    const response = await fetch(
+        `${API_BASE_URL}/reports/summary?${params}`,
+        {
+            method: "GET",
+
+            headers: {
+                "Authorization":
+                    `Bearer ${token}`,
+
+                "Content-Type":
+                    "application/json"
+            }
+        }
+    );
+
+    const data =
+        await response.json();
+
+    if (!response.ok) {
+
+        throw new Error(
+            data.message ||
+            "Failed to generate report"
+        );
+    }
+
+    return data;
+}
+
+//pdf download
+
+async function downloadPdfReport(
+    startDate,
+    endDate
+) {
+
+    const token =
+        localStorage.getItem("token");
+
+    const params = new URLSearchParams({
+        startDate: startDate,
+        endDate: endDate
+    });
+
+    const response = await fetch(
+        `${API_BASE_URL}/reports/pdf?${params}`,
+        {
+            method: "GET",
+
+            headers: {
+                "Authorization":
+                    `Bearer ${token}`
+            }
+        }
+    );
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Failed to download PDF report"
+        );
+    }
+
+    const blob =
+        await response.blob();
+
+    const url =
+        window.URL.createObjectURL(blob);
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+        "finvision-report.pdf";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+    window.URL.revokeObjectURL(url);
+}
