@@ -23,7 +23,7 @@
             <a href="transactions.html">Transactions</a>
             <a href="budget.html">Budgets</a>
             <a href="reports.html" class="active">Reports</a>
-            <a href="#">Profile</a>
+            <a href="profile.html">Profile</a>
         </nav>
 
         <button id="logoutBtn">
@@ -129,6 +129,16 @@
 
         </section>
 
+        <section class="report-chart-card">
+
+            <h3>Category-wise Expenses</h3>
+
+            <div class="chart-container">
+                <canvas id="categoryExpenseChart"></canvas>
+            </div>
+
+        </section>
+
     </main>
 
 </div>
@@ -136,6 +146,7 @@
 
 <script src="js/api.js"></script>
 <script src="js/reports.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </body>
 

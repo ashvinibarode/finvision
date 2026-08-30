@@ -179,4 +179,21 @@ public interface TransactionRepository
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    @Query("""
+        SELECT c.name, COALESCE(SUM(t.amount), 0)
+        FROM Transaction t
+        JOIN t.category c
+        WHERE t.user = :user
+          AND c.type = :type
+          AND t.transactionDate BETWEEN :startDate AND :endDate
+        GROUP BY c.name
+        ORDER BY SUM(t.amount) DESC
+        """)
+    List<Object[]> getCategoryExpenseSummary(
+            @Param("user") User user,
+            @Param("type") CategoryType type,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }

@@ -1,66 +1,65 @@
 let currentStartDate = null;
 let currentEndDate = null;
+let categoryExpenseChart = null;
 
-
-document.addEventListener(
-    "DOMContentLoaded",
-    initializeReports
-);
-
+document.addEventListener("DOMContentLoaded", initializeReports);
 
 function initializeReports() {
 
-    const today =
-        new Date();
+    const startDateInput =
+        document.getElementById("startDate");
 
-    const firstDay =
-        new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            1
-        );
+    const endDateInput =
+        document.getElementById("endDate");
 
+    const generateButton =
+        document.getElementById("generateReportBtn");
 
-    document.getElementById(
-        "startDate"
-    ).value =
+    const downloadButton =
+        document.getElementById("downloadPdfBtn");
+
+    if (!startDateInput ||
+        !endDateInput ||
+        !generateButton ||
+        !downloadButton) {
+
+        console.error("Report elements not found.");
+        return;
+    }
+
+    const today = new Date();
+
+    const firstDay = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+    );
+
+    startDateInput.value =
         formatDateForInput(firstDay);
 
-
-    document.getElementById(
-        "endDate"
-    ).value =
+    endDateInput.value =
         formatDateForInput(today);
 
+    generateButton.addEventListener(
+        "click",
+        generateReport
+    );
 
-    document
-        .getElementById("generateReportBtn")
-        .addEventListener(
-            "click",
-            generateReport
-        );
-
-
-    document
-        .getElementById("downloadPdfBtn")
-        .addEventListener(
-            "click",
-            downloadReportPdf
-        );
+    downloadButton.addEventListener(
+        "click",
+        downloadReportPdf
+    );
 }
+
 
 async function generateReport() {
 
     const startDate =
-        document.getElementById(
-            "startDate"
-        ).value;
+        document.getElementById("startDate").value;
 
     const endDate =
-        document.getElementById(
-            "endDate"
-        ).value;
-
+        document.getElementById("endDate").value;
 
     if (!startDate || !endDate) {
 
@@ -72,7 +71,6 @@ async function generateReport() {
         return;
     }
 
-
     if (startDate > endDate) {
 
         showReportMessage(
@@ -83,7 +81,6 @@ async function generateReport() {
         return;
     }
 
-
     try {
 
         const report =
@@ -92,13 +89,8 @@ async function generateReport() {
                 endDate
             );
 
-
-        currentStartDate =
-            startDate;
-
-        currentEndDate =
-            endDate;
-
+        currentStartDate = startDate;
+        currentEndDate = endDate;
 
         displayReport(report);
 
@@ -106,60 +98,131 @@ async function generateReport() {
             "Report generated successfully."
         );
 
-
     } catch (error) {
 
         console.error(error);
 
         showReportMessage(
-            error.message,
+            error.message ||
+            "Failed to generate report.",
             true
         );
     }
 }
+
 
 function displayReport(report) {
 
     document.getElementById(
         "totalIncome"
     ).textContent =
-        formatCurrency(
-            report.totalIncome
-        );
-
+        formatCurrency(report.totalIncome);
 
     document.getElementById(
         "totalExpense"
     ).textContent =
-        formatCurrency(
-            report.totalExpense
-        );
-
+        formatCurrency(report.totalExpense);
 
     document.getElementById(
         "balance"
     ).textContent =
-        formatCurrency(
-            report.balance
-        );
-
+        formatCurrency(report.balance);
 
     document.getElementById(
         "totalTransactions"
     ).textContent =
         report.totalTransactions;
 
-
     document.getElementById(
         "reportPeriod"
     ).textContent =
         report.month;
+
+    displayCategoryExpenseChart(
+        report.categoryExpenses || []
+    );
 }
+
+
+function displayCategoryExpenseChart(
+    categoryExpenses
+) {
+
+    const canvas =
+        document.getElementById(
+            "categoryExpenseChart"
+        );
+
+    if (!canvas) {
+        return;
+    }
+
+    if (categoryExpenseChart) {
+
+        categoryExpenseChart.destroy();
+
+        categoryExpenseChart = null;
+    }
+
+    if (
+        !categoryExpenses ||
+        categoryExpenses.length === 0
+    ) {
+        return;
+    }
+
+    const labels =
+        categoryExpenses.map(
+            item => item.categoryName
+        );
+
+    const amounts =
+        categoryExpenses.map(
+            item => Number(item.amount)
+        );
+
+    categoryExpenseChart =
+        new Chart(
+            canvas,
+            {
+                type: "doughnut",
+
+                data: {
+                    labels: labels,
+
+                    datasets: [
+                        {
+                            label:
+                                "Category Expenses",
+
+                            data: amounts
+                        }
+                    ]
+                },
+
+                options: {
+                    responsive: true,
+
+                    maintainAspectRatio:
+                        false,
+
+                    plugins: {
+                        legend: {
+                            position: "bottom"
+                        }
+                    }
+                }
+            }
+        );
+}
+
 
 async function downloadReportPdf() {
 
-    if (!currentStartDate ||
-        !currentEndDate) {
+    if (
+        !currentStartDate ||
+        !currentEndDate
+    ) {
 
         showReportMessage(
             "Generate a report first.",
@@ -169,7 +232,6 @@ async function downloadReportPdf() {
         return;
     }
 
-
     try {
 
         await downloadPdfReport(
@@ -177,33 +239,32 @@ async function downloadReportPdf() {
             currentEndDate
         );
 
-
         showReportMessage(
             "PDF downloaded successfully."
         );
-
 
     } catch (error) {
 
         console.error(error);
 
         showReportMessage(
-            error.message,
+            error.message ||
+            "Failed to download PDF.",
             true
         );
     }
 }
 
+
 function formatCurrency(amount) {
 
-    return Number(amount)
-        .toLocaleString(
-            "en-IN",
-            {
-                style: "currency",
-                currency: "INR"
-            }
-        );
+    return Number(amount).toLocaleString(
+        "en-IN",
+        {
+            style: "currency",
+            currency: "INR"
+        }
+    );
 }
 
 
@@ -222,8 +283,7 @@ function formatDateForInput(date) {
             date.getDate()
         ).padStart(2, "0");
 
-
-    return `${year}-${month}-${day}`;
+    return year + "-" + month + "-" + day;
 }
 
 
@@ -237,8 +297,11 @@ function showReportMessage(
             "reportMessage"
         );
 
-    element.textContent =
-        message;
+    if (!element) {
+        return;
+    }
+
+    element.textContent = message;
 
     element.className =
         isError
