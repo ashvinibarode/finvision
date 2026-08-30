@@ -21,4 +21,6 @@ public class ReportSummaryResponse {
     private String month;
 
     private List<CategoryExpenseResponse> categoryExpenses;
+
+    private List<ReportTransactionResponse> transactions;
 }

@@ -1109,4 +1109,33 @@ tr:hover td {
         margin: 20px auto;
     }
 
+
+     .report-transactions {
+         margin-top: 25px;
+         padding: 20px;
+         border-radius: 12px;
+         background: #fff;
+     }
+
+     .table-container {
+         width: 100%;
+         overflow-x: auto;
+         margin-top: 15px;
+     }
+
+     .report-transactions table {
+         width: 100%;
+         border-collapse: collapse;
+     }
+
+     .report-transactions th,
+     .report-transactions td {
+         padding: 12px;
+         text-align: left;
+         border-bottom: 1px solid #eee;
+     }
+
+     .report-transactions th {
+         font-weight: 600;
+     }
 }

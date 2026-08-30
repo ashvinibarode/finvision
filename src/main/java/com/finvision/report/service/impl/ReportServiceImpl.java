@@ -4,6 +4,7 @@ import com.finvision.category.entity.CategoryType;
 import com.finvision.common.exception.ResourceNotFoundException;
 import com.finvision.report.dto.CategoryExpenseResponse;
 import com.finvision.report.dto.ReportSummaryResponse;
+import com.finvision.report.dto.ReportTransactionResponse;
 import com.finvision.report.service.ReportService;
 import com.finvision.transaction.entity.Transaction;
 import com.finvision.transaction.repository.TransactionRepository;
@@ -109,16 +110,55 @@ public class ReportServiceImpl implements ReportService {
         }
 
 
+        // Get transactions for selected period
+        List<Transaction> transactions =
+                transactionRepository
+                        .findByUserAndTransactionDateBetween(
+                                user,
+                                startDate,
+                                endDate);
+
+
+        // Convert transactions to response DTO
+        List<ReportTransactionResponse> transactionResponses =
+                transactions.stream()
+                        .map(transaction ->
+                                ReportTransactionResponse.builder()
+                                        .title(
+                                                transaction.getTitle()
+                                        )
+                                        .categoryName(
+                                                transaction
+                                                        .getCategory()
+                                                        .getName()
+                                        )
+                                        .amount(
+                                                transaction.getAmount()
+                                        )
+                                        .transactionDate(
+                                                transaction
+                                                        .getTransactionDate()
+                                        )
+                                        .type(
+                                                transaction
+                                                        .getCategory()
+                                                        .getType()
+                                                        .toString()
+                                        )
+                                        .build()
+                        )
+                        .toList();
+
+
         // Build report response
         return ReportSummaryResponse.builder()
                 .totalIncome(income)
                 .totalExpense(expense)
                 .balance(income.subtract(expense))
                 .totalTransactions(transactionCount)
-                .month(
-                        startDate + " to " + endDate
-                )
+                .month(startDate + " to " + endDate)
                 .categoryExpenses(categoryExpenses)
+                .transactions(transactionResponses)
                 .build();
     }
 
@@ -398,3 +438,4 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 }
+

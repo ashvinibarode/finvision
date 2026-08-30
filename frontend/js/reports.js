@@ -308,3 +308,127 @@ function showReportMessage(
             ? "error-message"
             : "success-message";
 }
+
+function escapeHtml(value) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        value ?? "";
+
+    return div.innerHTML;
+}
+
+
+function displayReport(report) {
+
+    document.getElementById(
+        "totalIncome"
+    ).textContent =
+        formatCurrency(report.totalIncome);
+
+
+    document.getElementById(
+        "totalExpense"
+    ).textContent =
+        formatCurrency(report.totalExpense);
+
+
+    document.getElementById(
+        "balance"
+    ).textContent =
+        formatCurrency(report.balance);
+
+
+    document.getElementById(
+        "totalTransactions"
+    ).textContent =
+        report.totalTransactions;
+
+
+    document.getElementById(
+        "reportPeriod"
+    ).textContent =
+        report.month;
+
+
+    displayCategoryExpenseChart(
+        report.categoryExpenses
+    );
+
+
+    displayReportTransactions(
+        report.transactions
+    );
+}
+
+function displayReportTransactions(
+    transactions
+) {
+
+    const tbody =
+        document.getElementById(
+            "reportTransactionsBody"
+        );
+
+
+    tbody.innerHTML = "";
+
+
+    if (!transactions ||
+        transactions.length === 0) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    No transactions found
+                    for the selected period.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    transactions.forEach(transaction => {
+
+        const row =
+            document.createElement("tr");
+
+
+        row.innerHTML = `
+            <td>
+                ${escapeHtml(transaction.title)}
+            </td>
+
+            <td>
+                ${escapeHtml(
+                    transaction.categoryName
+                )}
+            </td>
+
+            <td>
+                ${formatCurrency(
+                    transaction.amount
+                )}
+            </td>
+
+            <td>
+                ${transaction.transactionDate}
+            </td>
+
+            <td>
+                ${escapeHtml(
+                    transaction.type
+                )}
+            </td>
+        `;
+
+
+        tbody.appendChild(row);
+
+    });
+
+}
