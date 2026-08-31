@@ -48,7 +48,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         Long totalTransactions = transactionRepository.countByUser(user);
 
-        Long totalBudgets = budgetRepository.countByUser(user);
+        Long totalBudgets = budgetRepository .countByUser(user);
 
         List<CategoryExpenseResponse> topCategories =
                 transactionRepository.getTopExpenseCategories(

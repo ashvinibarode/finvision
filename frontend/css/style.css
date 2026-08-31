@@ -1139,3 +1139,8 @@ tr:hover td {
          font-weight: 600;
      }
 }
+
+.chart-card canvas {
+    width: 100% !important;
+    height: 280px !important;
+}
