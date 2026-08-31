@@ -1,9 +1,13 @@
-package com.finvision.transaction.service.impl;
+package com.finvision.transaction.service;
 
-import com.finvision.category.entity.CategoryType;
+import com.finvision.budget.entity.Budget;
+import com.finvision.budget.repository.BudgetRepository;
 import com.finvision.category.entity.Category;
+import com.finvision.category.entity.CategoryType;
 import com.finvision.category.repository.CategoryRepository;
 import com.finvision.common.exception.ResourceNotFoundException;
+import com.finvision.notification.entity.NotificationType;
+import com.finvision.notification.service.NotificationService;
 import com.finvision.transaction.dto.TransactionFilterRequest;
 import com.finvision.transaction.dto.TransactionRequest;
 import com.finvision.transaction.dto.TransactionResponse;
@@ -12,10 +16,7 @@ import com.finvision.transaction.repository.TransactionRepository;
 import com.finvision.transaction.service.TransactionService;
 import com.finvision.user.entity.User;
 import com.finvision.user.repository.UserRepository;
-
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -33,11 +35,11 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
-
+    private final BudgetRepository budgetRepository;
+    private final NotificationService notificationService;
 
 
     // ADD TRANSACTION
-
 
     @Override
     public TransactionResponse addTransaction(
@@ -56,7 +58,6 @@ public class TransactionServiceImpl implements TransactionService {
                         )
                 );
 
-
         Transaction transaction =
                 Transaction.builder()
                         .title(request.getTitle())
@@ -69,17 +70,20 @@ public class TransactionServiceImpl implements TransactionService {
                         .user(user)
                         .build();
 
-
         transaction =
                 transactionRepository.save(transaction);
+
+        checkBudgetNotification(
+                user,
+                category,
+                transaction.getTransactionDate()
+        );
 
         return mapToResponse(transaction);
     }
 
 
-
     // UPDATE TRANSACTION
-
 
     @Override
     public TransactionResponse updateTransaction(
@@ -98,7 +102,6 @@ public class TransactionServiceImpl implements TransactionService {
                                 )
                         );
 
-
         Category category =
                 categoryRepository.findAccessibleCategory(
                         request.getCategoryId(),
@@ -108,7 +111,6 @@ public class TransactionServiceImpl implements TransactionService {
                                 "Category not found"
                         )
                 );
-
 
         transaction.setTitle(
                 request.getTitle()
@@ -130,17 +132,20 @@ public class TransactionServiceImpl implements TransactionService {
                 request.getTransactionDate()
         );
 
-
         transaction =
                 transactionRepository.save(transaction);
+
+        checkBudgetNotification(
+                user,
+                category,
+                transaction.getTransactionDate()
+        );
 
         return mapToResponse(transaction);
     }
 
 
-
     // DELETE TRANSACTION
-
 
     @Override
     public void deleteTransaction(
@@ -162,9 +167,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-
     // GET BY ID
-
 
     @Override
     public TransactionResponse getTransactionById(
@@ -186,9 +189,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-
     // GET ALL
-
 
     @Override
     public List<TransactionResponse> getAllTransactions(
@@ -204,9 +205,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-
     // GET BY CATEGORY TYPE
-
 
     @Override
     public List<TransactionResponse> getTransactionsByType(
@@ -226,9 +225,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-
     // GET BY CATEGORY
-
 
     @Override
     public List<TransactionResponse> getTransactionsByCategory(
@@ -248,9 +245,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-
     // SEARCH
-
 
     @Override
     public List<TransactionResponse> searchTransactions(
@@ -270,8 +265,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-
     // DATE RANGE
+
     @Override
     public List<TransactionResponse> getTransactionsBetweenDates(
             String email,
@@ -301,11 +296,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-
-
-
     // FILTER + PAGINATION + SORT
-
 
     @Override
     public Page<TransactionResponse> getTransactions(
@@ -319,6 +310,7 @@ public class TransactionServiceImpl implements TransactionService {
         User user = getUser(email);
 
         // Validate date range
+
         if (filter != null &&
                 filter.getFromDate() != null &&
                 filter.getToDate() != null &&
@@ -331,6 +323,7 @@ public class TransactionServiceImpl implements TransactionService {
 
 
         // Prevent invalid page/size values
+
         if (page < 0) {
             page = 0;
         }
@@ -341,6 +334,7 @@ public class TransactionServiceImpl implements TransactionService {
 
 
         // Allow only valid sortable fields
+
         String validSortBy =
                 getValidSortField(sortBy);
 
@@ -362,9 +356,7 @@ public class TransactionServiceImpl implements TransactionService {
                 );
 
 
-
         // USER OWNERSHIP
-
 
         Specification<Transaction> specification =
                 Specification.where(
@@ -376,9 +368,7 @@ public class TransactionServiceImpl implements TransactionService {
                 );
 
 
-
         // CATEGORY FILTER
-
 
         if (filter != null &&
                 filter.getCategoryId() != null) {
@@ -395,9 +385,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
 
-
         // FROM DATE FILTER
-
 
         if (filter != null &&
                 filter.getFromDate() != null) {
@@ -416,9 +404,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
 
-
         // TO DATE FILTER
-
 
         if (filter != null &&
                 filter.getToDate() != null) {
@@ -437,21 +423,18 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
 
-
         // SEARCH FILTER
-
 
         if (filter != null &&
                 filter.getSearch() != null &&
                 !filter.getSearch().isBlank()) {
 
             String search =
-                    "%" +
-                            filter.getSearch()
-                                    .trim()
-                                    .toLowerCase() +
-                            "%";
-
+                    "%"
+                            + filter.getSearch()
+                            .trim()
+                            .toLowerCase()
+                            + "%";
 
             specification =
                     specification.and(
@@ -489,9 +472,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-
     // VALID SORT FIELD
-
 
     private String getValidSortField(
             String sortBy) {
@@ -501,7 +482,6 @@ public class TransactionServiceImpl implements TransactionService {
 
             return "transactionDate";
         }
-
 
         return switch (sortBy) {
 
@@ -520,9 +500,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-
     // GET USER
-
 
     private User getUser(String email) {
 
@@ -536,9 +514,123 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
+    // BUDGET NOTIFICATION
+
+    private void checkBudgetNotification(
+            User user,
+            Category category,
+            LocalDate transactionDate) {
+
+        // Only expense categories can affect budgets
+
+        if (category.getType() != CategoryType.EXPENSE) {
+            return;
+        }
+
+
+        // First day of transaction month
+
+        LocalDate month =
+                transactionDate.withDayOfMonth(1);
+
+
+        // Find budget for this category and month
+
+        Budget budget =
+                budgetRepository
+                        .findByUserAndCategoryAndMonth(
+                                user,
+                                category,
+                                month
+                        )
+                        .orElse(null);
+
+        if (budget == null) {
+            return;
+        }
+
+
+        // Calculate monthly spending
+
+        LocalDate startDate = month;
+
+        LocalDate endDate =
+                month.plusMonths(1);
+
+        BigDecimal spentAmount =
+                budgetRepository.calculateCategorySpending(
+                        user,
+                        category,
+                        startDate,
+                        endDate
+                );
+
+        if (spentAmount == null) {
+            spentAmount = BigDecimal.ZERO;
+        }
+
+
+        BigDecimal budgetAmount =
+                budget.getAmount();
+
+
+        // BUDGET EXCEEDED
+
+        if (spentAmount.compareTo(budgetAmount) > 0) {
+
+            String message =
+                    "Your "
+                            + category.getName()
+                            + " budget has been exceeded. "
+                            + "Spent: ₹"
+                            + spentAmount
+                            + " / Budget: ₹"
+                            + budgetAmount;
+
+            notificationService.createNotification(
+                    user,
+                    "Budget Exceeded",
+                    message,
+                    NotificationType.BUDGET_EXCEEDED
+            );
+
+            return;
+        }
+
+
+        // BUDGET WARNING - 80%
+
+        BigDecimal warningLimit =
+                budgetAmount
+                        .multiply(
+                                BigDecimal.valueOf(80)
+                        )
+                        .divide(
+                                BigDecimal.valueOf(100)
+                        );
+
+        if (spentAmount.compareTo(warningLimit) >= 0) {
+
+            String message =
+                    "Your "
+                            + category.getName()
+                            + " budget is almost exhausted. "
+                            + "Spent: ₹"
+                            + spentAmount
+                            + " / Budget: ₹"
+                            + budgetAmount;
+
+            notificationService.createNotification(
+                    user,
+                    "Budget Warning",
+                    message,
+                    NotificationType.BUDGET_WARNING
+            );
+        }
+    }
+
 
     // MAP ENTITY → RESPONSE
-
 
     private TransactionResponse mapToResponse(
             Transaction transaction) {
@@ -565,3 +657,4 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
     }
 }
+
