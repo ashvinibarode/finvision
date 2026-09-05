@@ -13,7 +13,6 @@ import com.finvision.transaction.dto.TransactionRequest;
 import com.finvision.transaction.dto.TransactionResponse;
 import com.finvision.transaction.entity.Transaction;
 import com.finvision.transaction.repository.TransactionRepository;
-import com.finvision.transaction.service.TransactionService;
 import com.finvision.user.entity.User;
 import com.finvision.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -73,11 +72,15 @@ public class TransactionServiceImpl implements TransactionService {
         transaction =
                 transactionRepository.save(transaction);
 
+        // Check budget notifications
         checkBudgetNotification(
                 user,
                 category,
                 transaction.getTransactionDate()
         );
+
+        // Check low balance notification
+        checkLowBalanceNotification(user);
 
         return mapToResponse(transaction);
     }
@@ -135,11 +138,15 @@ public class TransactionServiceImpl implements TransactionService {
         transaction =
                 transactionRepository.save(transaction);
 
+        // Check budget notifications
         checkBudgetNotification(
                 user,
                 category,
                 transaction.getTransactionDate()
         );
+
+        // Check low balance notification
+        checkLowBalanceNotification(user);
 
         return mapToResponse(transaction);
     }
@@ -630,6 +637,78 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
+    // LOW BALANCE NOTIFICATION
+
+    private void checkLowBalanceNotification(
+            User user) {
+
+        BigDecimal totalIncome =
+                transactionRepository.getTotalIncome(
+                        user,
+                        CategoryType.INCOME
+                );
+
+        BigDecimal totalExpense =
+                transactionRepository.getTotalExpense(
+                        user,
+                        CategoryType.EXPENSE
+                );
+
+
+        if (totalIncome == null) {
+            totalIncome = BigDecimal.ZERO;
+        }
+
+        if (totalExpense == null) {
+            totalExpense = BigDecimal.ZERO;
+        }
+
+
+        // No income means low balance
+        // notification should not be generated
+
+        if (totalIncome.compareTo(
+                BigDecimal.ZERO) <= 0) {
+
+            return;
+        }
+
+
+        BigDecimal balance =
+                totalIncome.subtract(totalExpense);
+
+
+        // 10% of total income
+
+        BigDecimal warningLimit =
+                totalIncome
+                        .multiply(
+                                BigDecimal.valueOf(10)
+                        )
+                        .divide(
+                                BigDecimal.valueOf(100)
+                        );
+
+
+        // LOW BALANCE
+
+        if (balance.compareTo(warningLimit) <= 0) {
+
+            String message =
+                    "Your available balance is low. "
+                            + "Current balance: ₹"
+                            + balance;
+
+            notificationService.createNotification(
+                    user,
+                    "Low Balance",
+                    message,
+                    NotificationType.LOW_BALANCE
+            );
+        }
+    }
+
+
     // MAP ENTITY → RESPONSE
 
     private TransactionResponse mapToResponse(
@@ -657,4 +736,3 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
     }
 }
-
